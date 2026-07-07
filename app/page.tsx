@@ -15,6 +15,7 @@ type ProjectRow = {
   status: string;
   tags: string[] | null;
   looking_for: string[] | null;
+  team_members: string[] | null;
   external_link: string | null;
 };
 
