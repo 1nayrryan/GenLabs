@@ -1,6 +1,8 @@
 import { partners } from "@/lib/partners";
 
 export default function PartnersStrip() {
+  if (partners.length === 0) return null;
+
   return (
     <section className="max-w-6xl mx-auto px-6 py-16 border-t border-line">
       <p className="font-mono text-xs uppercase tracking-wide text-muted mb-6 text-center">

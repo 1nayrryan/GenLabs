@@ -3,12 +3,51 @@ import ProjectCard from "@/components/ProjectCard";
 import MetricsPanel from "@/components/MetricsPanel";
 import ProjectOfMonth from "@/components/ProjectOfMonth";
 import PartnersStrip from "@/components/PartnersStrip";
-import { mockProjects } from "@/lib/mockProjects";
+import { type Project } from "@/lib/mockProjects";
 import { getMetrics } from "@/lib/metrics";
+import { supabase } from "@/lib/supabaseClient";
+
+type ProjectRow = {
+  id: string;
+  title: string;
+  summary: string;
+  description: string | null;
+  status: string;
+  tags: string[] | null;
+  looking_for: string[] | null;
+  external_link: string | null;
+};
+
+function rowToProject(row: ProjectRow): Project {
+  const isGithub = row.external_link?.startsWith("https://github.com/");
+  return {
+    id: row.id,
+    title: row.title,
+    summary: row.summary,
+    description: row.description ?? row.summary,
+    status: (row.status as Project["status"]) ?? "building",
+    category: row.tags ?? [],
+    skills: row.looking_for ?? [],
+    contributors: row.team_members ?? [],
+    lookingFor: row.looking_for ?? [],
+    links: row.external_link && !isGithub ? [{ label: "Live site", url: row.external_link }] : undefined,
+    githubRepo: isGithub ? row.external_link!.replace("https://github.com/", "").replace(/\/$/, "") : undefined,
+  };
+}
 
 export default async function Home() {
   const metrics = await getMetrics();
-  const featured = mockProjects.find((p) => p.featured) ?? mockProjects[0];
+
+  let projects: Project[] = [];
+  if (supabase) {
+    const { data } = await supabase
+      .from("projects")
+      .select("id,title,summary,description,status,tags,looking_for,team_members,external_link")
+      .order("created_at", { ascending: false });
+    projects = (data ?? []).map(rowToProject);
+  }
+
+  const featured = projects.find((p) => p.status === "launched") ?? projects[0] ?? null;
 
   return (
     <>
@@ -66,14 +105,20 @@ export default async function Home() {
             View all →
           </Link>
         </div>
-        <div className="grid md:grid-cols-3 gap-5">
-          {mockProjects.slice(0, 3).map((p) => (
-            <ProjectCard key={p.id} project={p} />
-          ))}
-        </div>
+        {projects.length === 0 ? (
+          <p className="text-muted font-mono text-sm border-2 border-ink rounded-card p-8 text-center">
+            No live builds yet — the first posted project will appear here.
+          </p>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-5">
+            {projects.slice(0, 3).map((p) => (
+              <ProjectCard key={p.id} project={p} />
+            ))}
+          </div>
+        )}
       </section>
 
-      <ProjectOfMonth project={featured} />
+      {featured ? <ProjectOfMonth project={featured} /> : null}
 
       {/* How it works — a real sequence, shown as a connected path rather
           than three equal-width boxes */}

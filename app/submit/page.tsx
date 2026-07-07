@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { CATEGORY_OPTIONS, SKILL_OPTIONS } from "@/lib/mockProjects";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function SubmitPage() {
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [category, setCategory] = useState<string[]>([]);
   const [skills, setSkills] = useState<string[]>([]);
 
@@ -12,11 +15,54 @@ export default function SubmitPage() {
     setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // TODO: replace with a Supabase insert into the `projects` table,
-    // including the `category` and `skills` arrays from state above.
-    // const { error } = await supabase.from("projects").insert({ ... })
+    setLoading(true);
+    setError(null);
+
+    const form = e.currentTarget;
+    const data = new FormData(form);
+
+    const title       = (data.get("title") as string).trim();
+    const summary     = (data.get("summary") as string).trim();
+    const description = (data.get("description") as string).trim();
+    const status      = data.get("status") as string;
+    const lookingFor  = (data.get("lookingFor") as string)
+                          .split(",")
+                          .map((s) => s.trim())
+                          .filter(Boolean);
+    const teamMembers = (data.get("teamMembers") as string)
+                          .split(",")
+                          .map((s) => s.trim())
+                          .filter(Boolean);
+    const externalLink = (data.get("externalLink") as string).trim() || null;
+
+    // If Supabase isn't connected yet (no env vars), just show the
+    // success screen so the form still feels responsive during development.
+    if (!supabase) {
+      setSubmitted(true);
+      setLoading(false);
+      return;
+    }
+
+    const { error: insertError } = await supabase.from("projects").insert({
+      title,
+      summary,
+      description,
+      status,
+      tags: category,
+      looking_for: [...skills, ...lookingFor],
+      team_members: teamMembers,
+      external_link: externalLink,
+    });
+
+    setLoading(false);
+
+    if (insertError) {
+      setError(insertError.message);
+      return;
+    }
+
     setSubmitted(true);
   }
 
@@ -28,8 +74,8 @@ export default function SubmitPage() {
           Your build is up.
         </h1>
         <p className="text-muted">
-          It'll show up on the board once it's reviewed. We'll reach out if a
-          collaborator or mentor is a good fit.
+          It'll show on the board right away. We'll reach out if a collaborator
+          or mentor is a good fit.
         </p>
       </div>
     );
@@ -44,20 +90,43 @@ export default function SubmitPage() {
 
       <form onSubmit={handleSubmit} className="space-y-7">
         <Field label="Project title">
-          <input required className="field" placeholder="Campus Tutor Match" />
+          <input
+            name="title"
+            required
+            className="field"
+            placeholder="Campus Tutor Match"
+          />
         </Field>
 
-        <Field label="What is it?">
+        <Field label="One-line summary">
+          <input
+            name="summary"
+            required
+            className="field"
+            placeholder="A web app that matches BCA students with peer tutors."
+          />
+        </Field>
+
+        <Field label="Team members (optional)">
+          <input
+            name="teamMembers"
+            className="field"
+            placeholder="Ava, Jordan, Sam"
+          />
+        </Field>
+
+        <Field label="Full description">
           <textarea
+            name="description"
             required
             rows={4}
             className="field"
-            placeholder="One or two sentences on what it does and who it's for."
+            placeholder="What problem does it solve? Who is it for? What's the current state?"
           />
         </Field>
 
         <Field label="Status">
-          <select className="field">
+          <select name="status" className="field">
             <option value="seeking">Seeking collaborators</option>
             <option value="building">In progress</option>
             <option value="launched">Launched</option>
@@ -81,7 +150,7 @@ export default function SubmitPage() {
         </Field>
 
         <Field label="Skills needed (optional)">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mb-2">
             {SKILL_OPTIONS.map((s) => (
               <button
                 type="button"
@@ -94,17 +163,44 @@ export default function SubmitPage() {
               </button>
             ))}
           </div>
+          <input
+            name="lookingFor"
+            className="field"
+            placeholder="Any other roles, e.g. level designer, copywriter (comma-separated)"
+          />
+        </Field>
+
+        <Field label="GitHub repo or live site URL (optional)">
+          <input
+            name="externalLink"
+            type="url"
+            className="field"
+            placeholder="https://github.com/you/repo  or  https://yourapp.com"
+          />
         </Field>
 
         <Field label="Your email">
-          <input required type="email" className="field" placeholder="you@bca.edu" />
+          <input
+            name="email"
+            required
+            type="email"
+            className="field"
+            placeholder="you@bca.edu"
+          />
         </Field>
+
+        {error && (
+          <p className="font-mono text-xs text-red-600 border border-red-200 rounded-card px-4 py-2">
+            Error: {error}
+          </p>
+        )}
 
         <button
           type="submit"
-          className="w-full px-5 py-3 rounded-pill bg-ink text-paper font-medium hover:opacity-85 transition-opacity"
+          disabled={loading}
+          className="w-full px-5 py-3 rounded-pill bg-ink text-paper font-medium hover:opacity-85 transition-opacity disabled:opacity-50"
         >
-          Post it
+          {loading ? "Posting…" : "Post it"}
         </button>
       </form>
 

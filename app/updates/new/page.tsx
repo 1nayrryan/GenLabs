@@ -1,16 +1,65 @@
 "use client";
 
-import { useState } from "react";
-import { mockProjects } from "@/lib/mockProjects";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+
+type ProjectOption = { id: string; title: string };
 
 export default function PostUpdatePage() {
   const [submitted, setSubmitted] = useState(false);
+  const [projects, setProjects] = useState<ProjectOption[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent) {
+  useEffect(() => {
+    async function loadProjects() {
+      if (!supabase) return;
+      const { data } = await supabase.from("projects").select("id,title").order("created_at", { ascending: false });
+      setProjects((data ?? []).map((row: any) => ({ id: row.id, title: row.title })));
+    }
+
+    loadProjects();
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // TODO: replace with a Supabase insert into an `articles` table —
-    // see supabase/schema.sql. Look up the project's id from the title
-    // typed into the input below before inserting.
+    setLoading(true);
+    setError(null);
+
+    const form = e.currentTarget;
+    const data = new FormData(form);
+    const projectTitle = (data.get("projectTitle") as string).trim();
+    const author = (data.get("author") as string).trim();
+    const content = (data.get("content") as string).trim();
+
+    if (!supabase) {
+      setError("Supabase is not configured yet.");
+      setLoading(false);
+      return;
+    }
+
+    const { data: matches } = await supabase.from("projects").select("id").ilike("title", projectTitle).limit(1);
+    const projectId = matches?.[0]?.id ?? null;
+
+    if (!projectId) {
+      setError("Choose an existing project title from the dropdown.");
+      setLoading(false);
+      return;
+    }
+
+    const { error: insertError } = await supabase.from("articles").insert({
+      project_id: projectId,
+      author_name: author,
+      content,
+    });
+
+    setLoading(false);
+
+    if (insertError) {
+      setError(insertError.message);
+      return;
+    }
+
     setSubmitted(true);
   }
 
@@ -36,24 +85,26 @@ export default function PostUpdatePage() {
       <form onSubmit={handleSubmit} className="space-y-7">
         <Field label="Project title">
           <input
+            name="projectTitle"
             required
             list="project-options"
             className="field"
             placeholder="Start typing to search posted builds…"
           />
           <datalist id="project-options">
-            {mockProjects.map((p) => (
+            {projects.map((p) => (
               <option key={p.id} value={p.title} />
             ))}
           </datalist>
         </Field>
 
         <Field label="Author">
-          <input required className="field" placeholder="Your name" />
+          <input name="author" required className="field" placeholder="Your name" />
         </Field>
 
         <Field label="Update">
           <textarea
+            name="content"
             required
             rows={6}
             className="field"
@@ -61,11 +112,18 @@ export default function PostUpdatePage() {
           />
         </Field>
 
+        {error && (
+          <p className="font-mono text-xs text-red-600 border border-red-200 rounded-card px-4 py-2">
+            Error: {error}
+          </p>
+        )}
+
         <button
           type="submit"
-          className="w-full px-5 py-3 rounded-pill bg-ink text-paper font-medium hover:opacity-85 transition-opacity"
+          disabled={loading}
+          className="w-full px-5 py-3 rounded-pill bg-ink text-paper font-medium hover:opacity-85 transition-opacity disabled:opacity-50"
         >
-          Post update
+          {loading ? "Posting…" : "Post update"}
         </button>
       </form>
 

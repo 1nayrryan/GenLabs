@@ -70,10 +70,8 @@ export default function GithubStats({ repo }: { repo: string }) {
     return (
       <div className="border-2 border-line rounded-card p-5">
         <p className="font-mono text-xs text-muted">
-          Couldn't load GitHub stats for{" "}
-          <span className="text-ink">{repo}</span>. Check the repo name in{" "}
-          <span className="text-ink">lib/mockProjects.ts</span>, or it may be
-          private.
+          Couldn't load GitHub stats for <span className="text-ink">{repo}</span>.
+          Check that the repository name is correct or confirm the repo is public.
         </p>
       </div>
     );

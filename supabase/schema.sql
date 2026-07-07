@@ -18,9 +18,11 @@ create table projects (
   id uuid default gen_random_uuid() primary key,
   title text not null,
   summary text not null,
+  description text,
   status text not null check (status in ('seeking', 'building', 'launched')),
   tags text[],
   looking_for text[],
+  team_members text[],
   owner_id uuid references profiles(id),
   download_url text,        -- for "published products" / downloads
   external_link text,       -- live site, repo, etc.
@@ -87,16 +89,24 @@ create policy "Public can view projects"
   on projects for select
   using (true);
 
-create policy "Owners can insert their own projects"
+create policy "Anyone can insert projects"
   on projects for insert
-  with check (auth.uid() = owner_id);
+  with check (true);
 
-create policy "Owners can update their own projects"
+create policy "Anyone can update projects"
   on projects for update
-  using (auth.uid() = owner_id);
+  using (true);
 
 alter table articles enable row level security;
 
 create policy "Public can view articles"
   on articles for select
+  using (true);
+
+create policy "Anyone can insert articles"
+  on articles for insert
+  with check (true);
+
+create policy "Anyone can update articles"
+  on articles for update
   using (true);

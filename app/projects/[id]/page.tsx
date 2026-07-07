@@ -2,19 +2,62 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import StatusTag from "@/components/StatusTag";
 import Tag from "@/components/Tag";
-import ImagePlaceholderGallery from "@/components/ImagePlaceholderGallery";
 import GithubStats from "@/components/GithubStats";
-import { mockProjects } from "@/lib/mockProjects";
-import { mockUpdates } from "@/lib/mockUpdates";
+import { type Project } from "@/lib/mockProjects";
+import { supabase } from "@/lib/supabaseClient";
 
-export default function ProjectDetail({ params }: { params: { id: string } }) {
-  const project = mockProjects.find((p) => p.id === params.id);
+type ArticleRow = {
+  id: string;
+  author_name: string;
+  content: string;
+  created_at: string | null;
+};
+
+async function loadProject(id: string): Promise<Project | null> {
+  if (!supabase) return null;
+
+  const { data } = await supabase
+    .from("projects")
+    .select("id,title,summary,description,status,tags,looking_for,team_members,external_link")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!data) return null;
+
+  const isGithub = data.external_link?.startsWith("https://github.com/");
+  return {
+    id: data.id,
+    title: data.title,
+    summary: data.summary,
+    description: data.description ?? data.summary,
+    status: (data.status as Project["status"]) ?? "building",
+    category: data.tags ?? [],
+    skills: data.looking_for ?? [],
+    contributors: data.team_members ?? [],
+    lookingFor: data.looking_for ?? [],
+    links: data.external_link && !isGithub ? [{ label: "Live site", url: data.external_link }] : undefined,
+    githubRepo: isGithub ? data.external_link!.replace("https://github.com/", "").replace(/\/$/, "") : undefined,
+  };
+}
+
+async function loadArticles(projectId: string): Promise<ArticleRow[]> {
+  if (!supabase) return [];
+
+  const { data } = await supabase
+    .from("articles")
+    .select("id,author_name,content,created_at")
+    .eq("project_id", projectId)
+    .order("created_at", { ascending: false });
+
+  return data ?? [];
+}
+
+export default async function ProjectDetail({ params }: { params: { id: string } }) {
+  const project = await loadProject(params.id);
   if (!project) return notFound();
 
   const liveLink = project.links?.find((l) => l.label.toLowerCase().includes("site"));
-  const articles = mockUpdates
-    .filter((u) => u.projectId === project.id)
-    .sort((a, b) => (a.date < b.date ? 1 : -1));
+  const articles = await loadArticles(project.id);
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-16">
@@ -39,9 +82,6 @@ export default function ProjectDetail({ params }: { params: { id: string } }) {
           <Tag key={s} label={s} variant="outline" />
         ))}
       </div>
-
-      {/* Space for pictures */}
-      <ImagePlaceholderGallery />
 
       {/* Description */}
       <div className="mb-10">
@@ -117,8 +157,8 @@ export default function ProjectDetail({ params }: { params: { id: string } }) {
                   {a.content.length > 100 ? "…" : ""}
                 </p>
                 <p className="font-mono text-xs text-muted">
-                  {a.author} ·{" "}
-                  {new Date(a.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                  {a.author_name} ·{" "}
+                  {new Date(a.created_at ?? Date.now()).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                 </p>
               </Link>
             ))}

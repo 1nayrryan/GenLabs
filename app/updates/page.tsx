@@ -1,8 +1,25 @@
 import Link from "next/link";
-import { mockUpdates } from "@/lib/mockUpdates";
+import { supabase } from "@/lib/supabaseClient";
 
-export default function UpdatesPage() {
-  const sorted = [...mockUpdates].sort((a, b) => (a.date < b.date ? 1 : -1));
+type ArticleRow = {
+  id: string;
+  project_id: string | null;
+  author_name: string;
+  content: string;
+  created_at: string | null;
+};
+
+export default async function UpdatesPage() {
+  let articles: ArticleRow[] = [];
+  if (supabase) {
+    const { data } = await supabase
+      .from("articles")
+      .select("id,project_id,author_name,content,created_at")
+      .order("created_at", { ascending: false });
+    articles = data ?? [];
+  }
+
+  const sorted = [...articles].sort((a, b) => (a.created_at ?? "") < (b.created_at ?? "") ? 1 : -1);
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-16">
@@ -25,17 +42,17 @@ export default function UpdatesPage() {
             >
               <div className="flex items-center justify-between gap-3 mb-3">
                 <span className="font-mono text-xs text-muted uppercase tracking-wide">
-                  {u.projectTitle}
+                  {u.project_id ? "Project update" : "Project update"}
                 </span>
                 <span className="font-mono text-xs text-muted">
-                  {new Date(u.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                  {new Date(u.created_at ?? Date.now()).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                 </span>
               </div>
               <p className="text-sm leading-relaxed mb-4">
                 {u.content.slice(0, 140)}
                 {u.content.length > 140 ? "…" : ""}
               </p>
-              <p className="font-mono text-xs text-muted">by {u.author}</p>
+              <p className="font-mono text-xs text-muted">by {u.author_name}</p>
             </Link>
           ))}
         </div>
