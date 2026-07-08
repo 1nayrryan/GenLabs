@@ -8,6 +8,8 @@ import { supabase } from "@/lib/supabaseClient";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { isAdminUser, isProjectOwner } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 type ArticleRow = {
   id: string;
   author_name: string;
