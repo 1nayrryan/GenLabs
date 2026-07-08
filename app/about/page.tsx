@@ -13,10 +13,6 @@ export default function AboutPage() {
         pathway — post an idea, get matched with collaborators and a mentor,
         ship something real, and have it live publicly under your name.
       </p>
-      <p className="text-muted leading-relaxed mb-12">
-        This work connects directly to BLSU and the broader push to open up
-        tech to students who haven't had an easy way in.
-      </p>
 
       <h2 className="text-xl font-semibold mb-4">This year's goals</h2>
       <ul className="font-mono text-sm text-muted space-y-2 mb-12">
