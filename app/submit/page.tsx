@@ -1,15 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { CATEGORY_OPTIONS, SKILL_OPTIONS } from "@/lib/mockProjects";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function SubmitPage() {
+  const router = useRouter();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [category, setCategory] = useState<string[]>([]);
   const [skills, setSkills] = useState<string[]>([]);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [userReady, setUserReady] = useState(false);
+
+  useEffect(() => {
+    if (!supabase) {
+      setAuthChecked(true);
+      setUserReady(true);
+      return;
+    }
+
+    supabase.auth.getUser().then(({ data }) => {
+      setUserReady(Boolean(data.user));
+      setAuthChecked(true);
+    });
+  }, []);
 
   function toggle(list: string[], value: string, setList: (v: string[]) => void) {
     setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
@@ -45,6 +62,13 @@ export default function SubmitPage() {
       return;
     }
 
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      setError("Please sign in first.");
+      setLoading(false);
+      return;
+    }
+
     const { error: insertError } = await supabase.from("projects").insert({
       title,
       summary,
@@ -54,6 +78,7 @@ export default function SubmitPage() {
       looking_for: [...skills, ...lookingFor],
       team_members: teamMembers,
       external_link: externalLink,
+      owner_id: userData.user.id,
     });
 
     setLoading(false);
@@ -64,6 +89,27 @@ export default function SubmitPage() {
     }
 
     setSubmitted(true);
+  }
+
+  if (!authChecked) {
+    return (
+      <div className="max-w-xl mx-auto px-6 py-24 text-center">
+        <p className="text-muted">Checking your sign-in status…</p>
+      </div>
+    );
+  }
+
+  if (!userReady) {
+    return (
+      <div className="max-w-xl mx-auto px-6 py-24 text-center">
+        <p className="font-mono text-sm mb-3 text-muted">[ SIGN IN REQUIRED ]</p>
+        <h1 className="text-2xl font-semibold tracking-tightest2 mb-3">Please sign in first</h1>
+        <p className="text-muted mb-6">You need a Google account to post a build to GenLabs.</p>
+        <button onClick={() => router.push("/login")} className="px-6 py-3 rounded-pill bg-ink text-paper font-medium hover:opacity-85 transition-opacity">
+          Go to sign in
+        </button>
+      </div>
+    );
   }
 
   if (submitted) {

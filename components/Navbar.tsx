@@ -1,6 +1,7 @@
 import Link from "next/link";
 import PostMenu from "./PostMenu";
 import MobileMenu from "./MobileMenu";
+import AuthButton from "./AuthButton";
 
 const links = [
   { href: "/projects", label: "Builds" },
@@ -27,7 +28,10 @@ export default function Navbar() {
             </Link>
           ))}
         </nav>
-        <PostMenu />
+        <div className="flex items-center gap-3">
+          <AuthButton />
+          <PostMenu />
+        </div>
       </div>
     </header>
   );

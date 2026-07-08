@@ -5,6 +5,8 @@ import Tag from "@/components/Tag";
 import GithubStats from "@/components/GithubStats";
 import { type Project } from "@/lib/mockProjects";
 import { supabase } from "@/lib/supabaseClient";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { isAdminUser, isProjectOwner } from "@/lib/auth";
 
 type ArticleRow = {
   id: string;
@@ -58,6 +60,9 @@ export default async function ProjectDetail({ params }: { params: { id: string }
 
   const liveLink = project.links?.find((l) => l.label.toLowerCase().includes("site"));
   const articles = await loadArticles(project.id);
+  const serverSupabase = createServerSupabaseClient();
+  const { data: ownerRow } = await serverSupabase.from("projects").select("owner_id").eq("id", project.id).maybeSingle();
+  const canEdit = (await isAdminUser()) || (await isProjectOwner(ownerRow?.owner_id));
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-16">
@@ -166,12 +171,22 @@ export default async function ProjectDetail({ params }: { params: { id: string }
         )}
       </div>
 
-      <a
-        href={`mailto:hello@genlabs.org?subject=Interested in ${project.title}`}
-        className="inline-block px-6 py-3 rounded-pill border-2 border-ink font-medium hover:bg-mist transition-colors"
-      >
-        I want to help build this
-      </a>
+      <div className="flex flex-wrap gap-3">
+        <a
+          href={`mailto:hello@genlabs.org?subject=Interested in ${project.title}`}
+          className="inline-block px-6 py-3 rounded-pill border-2 border-ink font-medium hover:bg-mist transition-colors"
+        >
+          I want to help build this
+        </a>
+        {canEdit && (
+          <Link
+            href={`/projects/${project.id}/edit`}
+            className="inline-block px-6 py-3 rounded-pill bg-ink text-paper font-medium hover:opacity-85 transition-opacity"
+          >
+            Edit project
+          </Link>
+        )}
+      </div>
     </div>
   );
 }
