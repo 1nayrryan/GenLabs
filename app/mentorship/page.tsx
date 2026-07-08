@@ -1,7 +1,7 @@
 // Swap these placeholders for your real Google Form URLs once you've
 // built them — nothing else on this page needs to change.
-const MENTEE_FORM_URL = "https://forms.google.com/REPLACE_WITH_MENTORSHIP_REQUEST_FORM";
-const MENTOR_FORM_URL = "https://forms.google.com/REPLACE_WITH_MENTOR_APPLICATION_FORM";
+const MENTEE_FORM_URL = "https://forms.gle/QR9FtTJxhEAVeTZ66";
+const MENTOR_FORM_URL = "https://forms.gle/j3y5SQKdixvbQ2tt6";
 
 const resources = [
   {
