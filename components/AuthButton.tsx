@@ -23,7 +23,7 @@ export default function AuthButton() {
 
   async function signIn() {
     await supabase.auth.signInWithOAuth({
-      provider: "google",
+      provider: "github",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },

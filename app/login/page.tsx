@@ -8,9 +8,9 @@ export default function LoginPage() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  async function handleGoogleSignIn() {
+  async function handleGitHubSignIn() {
     await supabase.auth.signInWithOAuth({
-      provider: "google",
+      provider: "github",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
@@ -22,13 +22,13 @@ export default function LoginPage() {
       <p className="font-mono text-xs uppercase tracking-wide text-muted mb-4">Access</p>
       <h1 className="text-3xl font-semibold tracking-tightest2 mb-3">Sign in to GenLabs</h1>
       <p className="text-muted mb-8">
-        Sign in with Google to post projects, share updates, and manage the builds you created.
+        Sign in with GitHub to post projects, share updates, and manage the builds you created.
       </p>
       <button
-        onClick={handleGoogleSignIn}
+        onClick={handleGitHubSignIn}
         className="px-6 py-3 rounded-pill bg-ink text-paper font-medium hover:opacity-85 transition-opacity"
       >
-        Continue with Google
+        Continue with GitHub
       </button>
     </div>
   );

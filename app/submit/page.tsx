@@ -104,7 +104,7 @@ export default function SubmitPage() {
       <div className="max-w-xl mx-auto px-6 py-24 text-center">
         <p className="font-mono text-sm mb-3 text-muted">[ SIGN IN REQUIRED ]</p>
         <h1 className="text-2xl font-semibold tracking-tightest2 mb-3">Please sign in first</h1>
-        <p className="text-muted mb-6">You need a Google account to post a build to GenLabs.</p>
+        <p className="text-muted mb-6">You need a GitHub account to post a build to GenLabs.</p>
         <button onClick={() => router.push("/login")} className="px-6 py-3 rounded-pill bg-ink text-paper font-medium hover:opacity-85 transition-opacity">
           Go to sign in
         </button>
