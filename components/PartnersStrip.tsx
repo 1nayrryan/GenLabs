@@ -15,11 +15,11 @@ export default function PartnersStrip() {
             href={p.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="h-16 w-40 rounded-card border-2 border-dashed border-line flex items-center justify-center hover:border-ink transition-colors"
+            className="flex items-center justify-center transition-opacity hover:opacity-80"
           >
             {p.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={p.logoUrl} alt={p.name} className="max-h-10 max-w-[80%] object-contain" />
+              <img src={p.logoUrl} alt={p.name} className="h-30 w-auto max-w-[180px] object-contain" />
             ) : (
               <span className="font-mono text-xs text-muted px-3 text-center">{p.name}</span>
             )}
