@@ -4,9 +4,12 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "GenLabs — Build with people, not alone",
+  title: "GenLabs",
   description:
     "A student-led platform where BCA students find collaborators, get mentored, and launch real projects publicly.",
+    icons: {
+      icon: "GenLabs_WhiteLogo.png",
+    }
 };
 
 export default function RootLayout({
