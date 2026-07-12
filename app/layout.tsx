@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     "A student-led platform where BCA students find collaborators, get mentored, and launch real projects publicly.",
     icons: {
-      icon: "GenLabs_WhiteLogo.png",
+      icon: "GenLabs_TransWhite.png",
     }
 };
 
