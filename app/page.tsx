@@ -56,7 +56,7 @@ export default async function Home() {
       {/* Hero — split screen: text left, the one vibrant color moment
           (plus the live metrics readout) right */}
       <section className="border-b border-line overflow-hidden">
-        <div className="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-12 items-center">
+        <div className="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-12 items-center">
           <ScrollReveal delay={0}>
             <p className="font-mono text-xs text-muted mb-4 tracking-wide uppercase">
               BCA student-led · open to all
@@ -100,7 +100,7 @@ export default async function Home() {
 
       {/* Open builds — moved up to where "how it works" used to sit */}
       <ScrollReveal>
-        <section className="max-w-6xl mx-auto px-6 py-20">
+        <section className="max-w-7xl mx-auto px-6 py-20">
           <div className="flex items-center justify-between mb-10">
             <h2 className="text-2xl font-semibold tracking-tightest2">Open builds</h2>
             <Link href="/projects" className="text-sm underline hover:no-underline">
@@ -132,7 +132,7 @@ export default async function Home() {
       {/* How it works — a real sequence, shown as a connected path rather
           than three equal-width boxes */}
       <ScrollReveal>
-        <section className="max-w-6xl mx-auto px-6 py-20 border-t border-line">
+        <section className="max-w-7xl mx-auto px-6 py-20 border-t border-line">
           <h2 className="text-2xl font-semibold tracking-tightest2 mb-12">How it works</h2>
           <div className="relative max-w-2xl">
             <div
@@ -174,7 +174,7 @@ export default async function Home() {
       {/* Mission */}
       <ScrollReveal>
         <section className="border-t border-line bg-mist">
-          <div className="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-12 items-start">
+          <div className="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-12 items-start">
             <div>
               <h2 className="text-2xl font-semibold tracking-tightest2 mb-4">
                 Why this exists
