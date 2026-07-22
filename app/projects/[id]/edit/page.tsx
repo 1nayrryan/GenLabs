@@ -2,15 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createBrowserClient } from "@supabase/ssr";
+import { supabase } from "@/lib/supabaseClient";
 import { CATEGORY_OPTIONS, SKILL_OPTIONS } from "@/lib/mockProjects";
 
 export default function EditProjectPage({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -29,6 +25,12 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
 
   useEffect(() => {
     async function loadProject() {
+      if (!supabase) {
+        setError("Database not configured.");
+        setLoading(false);
+        return;
+      }
+
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
         router.replace("/login");
@@ -74,6 +76,12 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
     e.preventDefault();
     setSaving(true);
     setError(null);
+
+    if (!supabase) {
+      setError("Database not configured.");
+      setSaving(false);
+      return;
+    }
 
     const lookingFor = form.lookingFor
       .split(",")

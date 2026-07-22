@@ -1,4 +1,6 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+"use client";
+
+import { createBrowserClient, SupabaseClient } from "@supabase/ssr";
 
 // Pull these from your Supabase project settings (Settings → API)
 // and put them in .env.local (copy .env.local.example).
@@ -10,7 +12,9 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 // working on mock data before your database exists, instead of crashing
 // the build with "supabaseUrl is required".
 export const supabase: SupabaseClient | null =
-  supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+  supabaseUrl && supabaseAnonKey
+    ? createBrowserClient(supabaseUrl, supabaseAnonKey)
+    : null;
 
 // Example usage once your schema (see supabase/schema.sql) is set up:
 //

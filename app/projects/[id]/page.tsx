@@ -3,8 +3,8 @@ import Link from "next/link";
 import StatusTag from "@/components/StatusTag";
 import Tag from "@/components/Tag";
 import GithubStats from "@/components/GithubStats";
+import DeleteProjectButton from "@/components/DeleteProjectButton";
 import { type Project } from "@/lib/mockProjects";
-import { supabase } from "@/lib/supabaseClient";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { isAdminUser, isProjectOwner } from "@/lib/auth";
 
@@ -17,43 +17,65 @@ type ArticleRow = {
   created_at: string | null;
 };
 
-async function loadProject(id: string): Promise<Project | null> {
-  if (!supabase) return null;
+type ProjectRow = {
+  id: string;
+  owner_id: string;
+  title: string;
+  summary: string;
+  description: string | null;
+  status: string;
+  tags: string[] | null;
+  looking_for: string[] | null;
+  team_members: string[] | null;
+  external_link: string | null;
+};
 
-  const { data } = await supabase
-    .from("projects")
-    .select("id,title,summary,description,status,tags,looking_for,team_members,external_link")
-    .eq("id", id)
-    .maybeSingle();
+async function loadProject(id: string): Promise<(Project & { owner_id: string }) | null> {
+  try {
+    const supabase = createServerSupabaseClient();
+    const { data } = await supabase
+      .from("projects")
+      .select("id,owner_id,title,summary,description,status,tags,looking_for,team_members,external_link")
+      .eq("id", id)
+      .maybeSingle();
 
-  if (!data) return null;
+    if (!data) return null;
 
-  const isGithub = data.external_link?.startsWith("https://github.com/");
-  return {
-    id: data.id,
-    title: data.title,
-    summary: data.summary,
-    description: data.description ?? data.summary,
-    status: (data.status as Project["status"]) ?? "building",
-    category: data.tags ?? [],
-    skills: data.looking_for ?? [],
-    contributors: data.team_members ?? [],
-    lookingFor: data.looking_for ?? [],
-    links: data.external_link && !isGithub ? [{ label: "Live site", url: data.external_link }] : undefined,
-    githubRepo: isGithub ? data.external_link!.replace("https://github.com/", "").replace(/\/$/, "") : undefined,
-  };
+    const isGithub = data.external_link?.startsWith("https://github.com/");
+    return {
+      id: data.id,
+      owner_id: data.owner_id,
+      title: data.title,
+      summary: data.summary,
+      description: data.description ?? data.summary,
+      status: (data.status as Project["status"]) ?? "building",
+      category: data.tags ?? [],
+      skills: data.looking_for ?? [],
+      contributors: data.team_members ?? [],
+      lookingFor: data.looking_for ?? [],
+      links: data.external_link && !isGithub ? [{ label: "Live site", url: data.external_link }] : undefined,
+      githubRepo: isGithub ? data.external_link!.replace("https://github.com/", "").replace(/\/$/, "") : undefined,
+    };
+  } catch (error) {
+    console.error("Error loading project:", error);
+    return null;
+  }
 }
 
 async function loadArticles(projectId: string): Promise<ArticleRow[]> {
-  if (!supabase) return [];
+  try {
+    const supabase = createServerSupabaseClient();
+    const { data } = await supabase
+      .from("articles")
+      .select("id,author_name,content,created_at")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: false });
 
-  const { data } = await supabase
-    .from("articles")
-    .select("id,author_name,content,created_at")
-    .eq("project_id", projectId)
-    .order("created_at", { ascending: false });
-
-  return data ?? [];
+    return data ?? [];
+  } catch (error) {
+    console.error("Error loading articles:", error);
+    return [];
+  }
 }
 
 export default async function ProjectDetail({ params }: { params: { id: string } }) {
@@ -62,9 +84,7 @@ export default async function ProjectDetail({ params }: { params: { id: string }
 
   const liveLink = project.links?.find((l) => l.label.toLowerCase().includes("site"));
   const articles = await loadArticles(project.id);
-  const serverSupabase = createServerSupabaseClient();
-  const { data: ownerRow } = await serverSupabase.from("projects").select("owner_id").eq("id", project.id).maybeSingle();
-  const canEdit = (await isAdminUser()) || (await isProjectOwner(ownerRow?.owner_id));
+  const canEdit = (await isAdminUser()) || (await isProjectOwner(project.owner_id));
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-16">
@@ -181,12 +201,15 @@ export default async function ProjectDetail({ params }: { params: { id: string }
           I want to help build this
         </a>
         {canEdit && (
-          <Link
-            href={`/projects/${project.id}/edit`}
-            className="inline-block px-6 py-3 rounded-pill bg-ink text-paper font-medium hover:opacity-85 transition-opacity"
-          >
-            Edit project
-          </Link>
+          <>
+            <Link
+              href={`/projects/${project.id}/edit`}
+              className="inline-block px-6 py-3 rounded-pill bg-ink text-paper font-medium hover:opacity-85 transition-opacity"
+            >
+              Edit project
+            </Link>
+            <DeleteProjectButton projectId={project.id} />
+          </>
         )}
       </div>
     </div>

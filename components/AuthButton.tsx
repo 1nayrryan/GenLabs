@@ -1,27 +1,26 @@
 "use client";
 
-import { createBrowserClient } from "@supabase/ssr";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function AuthButton() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
 
   useEffect(() => {
+    if (!supabase) return;
+
     supabase.auth.getUser().then(({ data }) => setUserEmail(data.user?.email ?? null));
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUserEmail(session?.user?.email ?? null);
     });
 
-    return () => listener.subscription.unsubscribe();
+    return () => listener?.subscription.unsubscribe();
   }, [supabase]);
 
   async function signIn() {
+    if (!supabase) return;
     await supabase.auth.signInWithOAuth({
       provider: "github",
       options: {
@@ -31,6 +30,7 @@ export default function AuthButton() {
   }
 
   async function signOut() {
+    if (!supabase) return;
     await supabase.auth.signOut();
     setUserEmail(null);
   }

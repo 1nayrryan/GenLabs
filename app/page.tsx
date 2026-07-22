@@ -6,7 +6,7 @@ import PartnersStrip from "@/components/PartnersStrip";
 import ScrollReveal from "@/components/ScrollReveal";
 import { type Project } from "@/lib/mockProjects";
 import { getMetrics } from "@/lib/metrics";
-import { supabase } from "@/lib/supabaseClient";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 type ProjectRow = {
   id: string;
@@ -41,12 +41,15 @@ export default async function Home() {
   const metrics = await getMetrics();
 
   let projects: Project[] = [];
-  if (supabase) {
+  try {
+    const supabase = createServerSupabaseClient();
     const { data } = await supabase
       .from("projects")
       .select("id,title,summary,description,status,tags,looking_for,team_members,external_link")
       .order("created_at", { ascending: false });
     projects = (data ?? []).map(rowToProject);
+  } catch (error) {
+    // Database not configured yet, use empty projects array
   }
 
   const featured = projects.find((p) => p.status === "launched") ?? projects[0] ?? null;
