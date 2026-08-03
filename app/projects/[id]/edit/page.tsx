@@ -44,13 +44,6 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
         return;
       }
 
-      const isOwner = data.owner_id === userData.user.id;
-      if (!isOwner) {
-        setError("You can only edit projects you uploaded.");
-        setLoading(false);
-        return;
-      }
-
       setForm({
         title: data.title ?? "",
         summary: data.summary ?? "",

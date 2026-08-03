@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -13,13 +13,19 @@ type ArticleRow = {
 };
 
 async function loadUpdate(id: string): Promise<ArticleRow | null> {
+  const supabase = createServerSupabaseClient();
   if (!supabase) return null;
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("articles")
     .select("id,project_id,author_name,content,created_at")
     .eq("id", id)
     .maybeSingle();
+
+  if (error) {
+    console.error("Failed to load update:", error.message);
+    return null;
+  }
 
   return data;
 }

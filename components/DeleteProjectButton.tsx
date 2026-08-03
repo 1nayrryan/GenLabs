@@ -31,21 +31,14 @@ export default function DeleteProjectButton({ projectId }: { projectId: string }
         return;
       }
 
-      // Check if user is the owner
       const { data: project, error: fetchError } = await supabase
         .from("projects")
-        .select("owner_id")
+        .select("id")
         .eq("id", projectId)
         .maybeSingle();
 
       if (fetchError || !project) {
         setError("Project not found.");
-        setLoading(false);
-        return;
-      }
-
-      if (project.owner_id !== userData.user.id) {
-        setError("You can only delete projects you created.");
         setLoading(false);
         return;
       }

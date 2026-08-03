@@ -33,6 +33,8 @@ type ProjectRow = {
 async function loadProject(id: string): Promise<(Project & { owner_id: string }) | null> {
   try {
     const supabase = createServerSupabaseClient();
+    if (!supabase) return null;
+
     const { data } = await supabase
       .from("projects")
       .select("id,owner_id,title,summary,description,status,tags,looking_for,team_members,external_link")
@@ -65,6 +67,8 @@ async function loadProject(id: string): Promise<(Project & { owner_id: string })
 async function loadArticles(projectId: string): Promise<ArticleRow[]> {
   try {
     const supabase = createServerSupabaseClient();
+    if (!supabase) return [];
+
     const { data } = await supabase
       .from("articles")
       .select("id,author_name,content,created_at")

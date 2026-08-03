@@ -43,11 +43,13 @@ export default async function Home() {
   let projects: Project[] = [];
   try {
     const supabase = createServerSupabaseClient();
-    const { data } = await supabase
-      .from("projects")
-      .select("id,title,summary,description,status,tags,looking_for,team_members,external_link")
-      .order("created_at", { ascending: false });
-    projects = (data ?? []).map(rowToProject);
+    if (supabase) {
+      const { data } = await supabase
+        .from("projects")
+        .select("id,title,summary,description,status,tags,looking_for,team_members,external_link")
+        .order("created_at", { ascending: false });
+      projects = (data ?? []).map(rowToProject);
+    }
   } catch (error) {
     // Database not configured yet, use empty projects array
   }

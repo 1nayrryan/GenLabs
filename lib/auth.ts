@@ -2,6 +2,10 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function getCurrentUser() {
   const supabase = createServerSupabaseClient();
+  if (!supabase) {
+    return { user: null, error: null };
+  }
+
   const {
     data: { user },
     error,

@@ -1,6 +1,7 @@
 "use client";
 
-import { createBrowserClient, SupabaseClient } from "@supabase/ssr";
+import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 // Pull these from your Supabase project settings (Settings → API)
 // and put them in .env.local (copy .env.local.example).

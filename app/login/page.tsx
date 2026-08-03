@@ -1,14 +1,23 @@
 "use client";
 
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function LoginPage() {
+function LoginContent() {
+  const searchParams = useSearchParams();
+  const next = searchParams?.get("next") ?? "/";
+
   async function handleGitHubSignIn() {
     if (!supabase) return;
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    const redirectTo = `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`;
+
     await supabase.auth.signInWithOAuth({
       provider: "github",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo,
       },
     });
   }
@@ -27,5 +36,13 @@ export default function LoginPage() {
         Continue with GitHub
       </button>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="max-w-xl mx-auto px-6 py-24 text-center text-muted">Preparing sign-in…</div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

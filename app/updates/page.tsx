@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { supabase } from "@/lib/supabaseClient";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,9 @@ type ArticleRow = {
 };
 
 export default async function UpdatesPage() {
+  const supabase = createServerSupabaseClient();
   let articles: ArticleRow[] = [];
+
   if (supabase) {
     const { data } = await supabase
       .from("articles")
