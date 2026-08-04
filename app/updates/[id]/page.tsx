@@ -13,7 +13,7 @@ type ArticleRow = {
 };
 
 async function loadUpdate(id: string): Promise<ArticleRow | null> {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   if (!supabase) return null;
 
   const { data, error } = await supabase

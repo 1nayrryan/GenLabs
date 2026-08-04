@@ -42,7 +42,7 @@ export default async function Home() {
 
   let projects: Project[] = [];
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     if (supabase) {
       const { data } = await supabase
         .from("projects")

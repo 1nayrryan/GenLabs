@@ -32,7 +32,7 @@ type ProjectRow = {
 
 async function loadProject(id: string): Promise<(Project & { owner_id: string }) | null> {
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     if (!supabase) return null;
 
     const { data } = await supabase
@@ -66,7 +66,7 @@ async function loadProject(id: string): Promise<(Project & { owner_id: string })
 
 async function loadArticles(projectId: string): Promise<ArticleRow[]> {
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = await createServerSupabaseClient();
     if (!supabase) return [];
 
     const { data } = await supabase

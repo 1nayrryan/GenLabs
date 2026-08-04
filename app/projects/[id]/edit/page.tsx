@@ -44,6 +44,12 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
         return;
       }
 
+      if (data.owner_id && data.owner_id !== userData.user.id) {
+        setError("You can only edit projects you posted.");
+        setLoading(false);
+        return;
+      }
+
       setForm({
         title: data.title ?? "",
         summary: data.summary ?? "",
@@ -95,7 +101,7 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
       looking_for: [...skills, ...lookingFor],
       team_members: teamMembers,
       external_link: form.externalLink || null,
-    }).eq("id", params.id);
+    }).eq("id", params.id).eq("owner_id", (await supabase.auth.getUser()).data.user?.id);
 
     setSaving(false);
     if (error) {

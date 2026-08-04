@@ -11,7 +11,10 @@ function LoginContent() {
   async function handleGitHubSignIn() {
     if (!supabase) return;
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL && !["localhost", "127.0.0.1", "0.0.0.0"].includes(window.location.hostname)
+        ? process.env.NEXT_PUBLIC_SITE_URL
+        : window.location.origin;
     const redirectTo = `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`;
 
     await supabase.auth.signInWithOAuth({

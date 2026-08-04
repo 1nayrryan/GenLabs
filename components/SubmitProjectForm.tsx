@@ -50,6 +50,17 @@ export default function SubmitProjectForm() {
       return;
     }
 
+    const { error: profileError } = await supabase.from("profiles").upsert(
+      { id: userData.user.id },
+      { onConflict: "id" }
+    );
+
+    if (profileError) {
+      setError(profileError.message);
+      setLoading(false);
+      return;
+    }
+
     const { error: insertError } = await supabase.from("projects").insert({
       title,
       summary,

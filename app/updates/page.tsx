@@ -12,7 +12,7 @@ type ArticleRow = {
 };
 
 export default async function UpdatesPage() {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
   let articles: ArticleRow[] = [];
 
   if (supabase) {

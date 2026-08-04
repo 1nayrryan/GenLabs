@@ -33,7 +33,7 @@ export default function DeleteProjectButton({ projectId }: { projectId: string }
 
       const { data: project, error: fetchError } = await supabase
         .from("projects")
-        .select("id")
+        .select("id, owner_id")
         .eq("id", projectId)
         .maybeSingle();
 
@@ -43,10 +43,17 @@ export default function DeleteProjectButton({ projectId }: { projectId: string }
         return;
       }
 
+      if (project.owner_id !== userData.user.id) {
+        setError("You can only delete projects you posted.");
+        setLoading(false);
+        return;
+      }
+
       const { error: deleteError } = await supabase
         .from("projects")
         .delete()
-        .eq("id", projectId);
+        .eq("id", projectId)
+        .eq("owner_id", userData.user.id);
 
       if (deleteError) {
         setError(deleteError.message);

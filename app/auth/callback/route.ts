@@ -7,6 +7,7 @@ export async function GET(request: Request) {
   const code = requestUrl.searchParams.get("code");
   const next = requestUrl.searchParams.get("next") ?? "/";
   const errorDescription = requestUrl.searchParams.get("error_description") ?? requestUrl.searchParams.get("error");
+  const redirectResponse = NextResponse.redirect(new URL(next, requestUrl.origin));
 
   if (errorDescription) {
     console.error("Supabase auth callback error", errorDescription);
@@ -14,20 +15,19 @@ export async function GET(request: Request) {
   }
 
   if (code) {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
+          getAll() {
+            return cookieStore.getAll();
           },
-          set(name: string, value: string, options: CookieOptions) {
-            cookieStore.set(name, value, options);
-          },
-          remove(name: string, options: CookieOptions) {
-            cookieStore.set(name, "", { ...options, maxAge: 0 });
+          setAll(cookiesToSet: Array<{ name: string; value: string; options?: CookieOptions }>) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              redirectResponse.cookies.set({ name, value, ...options });
+            });
           },
         },
       }
@@ -39,5 +39,5 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(new URL(next, requestUrl.origin));
+  return redirectResponse;
 }
