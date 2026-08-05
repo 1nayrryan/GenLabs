@@ -199,7 +199,7 @@ export default async function ProjectDetail({ params }: { params: { id: string }
 
       <div className="flex flex-wrap gap-3">
         <a
-          href={`mailto:hello@genlabs.org?subject=Interested in ${project.title}`}
+          href={`mailto:genlabsteam@gmail.com?subject=Interested in ${project.title}`}
           className="inline-block px-6 py-3 rounded-pill border-2 border-ink font-medium hover:bg-mist transition-colors"
         >
           I want to help build this

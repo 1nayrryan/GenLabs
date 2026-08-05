@@ -62,7 +62,7 @@ export default function MentorshipPage() {
         </div>
       </div>
 
-      <h2 className="text-xl font-semibold mb-6">Learning modules</h2>
+      {/* <h2 className="text-xl font-semibold mb-6">Learning modules</h2>
       <div className="grid md:grid-cols-3 gap-5">
         {resources.map((r) => (
           <div key={r.title} className="border-2 border-line rounded-card p-5">
@@ -70,7 +70,7 @@ export default function MentorshipPage() {
             <p className="text-sm text-muted leading-relaxed">{r.body}</p>
           </div>
         ))}
-      </div>
+      </div> */}
     </div>
   );
 }

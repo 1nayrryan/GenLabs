@@ -26,8 +26,8 @@ export default function AboutPage() {
       <p className="text-muted leading-relaxed">
         Looking to join the board, mentor, or just post a project? Reach out
         at{" "}
-        <a href="mailto:hello@genlabs.org" className="underline hover:no-underline">
-          hello@genlabs.org
+        <a href="mailto:genlabsteam@gmail.com" className="underline hover:no-underline">
+          genlabsteam@gmail.com
         </a>
         .
       </p>
