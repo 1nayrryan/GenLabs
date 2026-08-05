@@ -17,6 +17,8 @@ export default function Footer() {
             <span className="text-ink font-medium mb-1">Org</span>
             <a href="/about" className="hover:text-ink">Mission</a>
             <a href="mailto:hello@genlabs.org" className="hover:text-ink">Contact</a>
+            <a href="https://instagram.com/genlabs_" className="hover:text-ink">Instagram</a>
+            <a href="https://linkedin.com/company/genlabs-co" className="hover:text-ink">Linkedin</a>
           </div>
         </div>
       </div>
