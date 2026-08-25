@@ -90,6 +90,7 @@ export default function MentorshipPage() {
                 {
                   title: "Git basics",
                   desc: "Learn version control to collaborate effectively.",
+                  url: "https://youtu.be/mJ-qvsxPHpY?si=KY1cdijzDszyrpHU",
                   icon: (
                     <svg
                       width="20"
@@ -108,6 +109,7 @@ export default function MentorshipPage() {
                 {
                   title: "Scoping projects",
                   desc: "How to break a big idea into buildable pieces.",
+                  url: "https://www.youtube.com/watch?v=wUGiIdqjDdk",
                   icon: (
                     <svg
                       width="20"
@@ -125,6 +127,7 @@ export default function MentorshipPage() {
                 {
                   title: "Asking for help",
                   desc: "How to get unstuck without feeling lost.",
+                  url: "https://www.youtube.com/watch?v=UFc-RPbq8kg",
                   icon: (
                     <svg
                       width="20"
@@ -141,13 +144,19 @@ export default function MentorshipPage() {
                   ),
                 },
               ].map((resource) => (
-                <div key={resource.title} className="p-4 bg-paper rounded-card">
+                <a
+                  key={resource.title}
+                  href={resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block p-4 bg-paper rounded-card card-hover"
+                >
                   <div className="text-muted mb-3">{resource.icon}</div>
                   <h3 className="text-sm font-bold mb-1">{resource.title}</h3>
                   <p className="text-xs text-muted leading-relaxed">
                     {resource.desc}
                   </p>
-                </div>
+                </a>
               ))}
             </div>
           </div>
