@@ -1,76 +1,158 @@
-// Swap these placeholders for your real Google Form URLs once you've
-// built them — nothing else on this page needs to change.
+import ScrollReveal from "@/components/ScrollReveal";
+
 const MENTEE_FORM_URL = "https://forms.gle/QR9FtTJxhEAVeTZ66";
 const MENTOR_FORM_URL = "https://forms.gle/j3y5SQKdixvbQ2tt6";
 
-const resources = [
-  {
-    title: "Git & GitHub basics",
-    body: "Cloning, branching, commits, and your first pull request — written for someone who's never touched the command line.",
-  },
-  {
-    title: "Scoping your first project",
-    body: "How to take a vague idea and cut it down to something you can actually finish in a few weeks.",
-  },
-  {
-    title: "How to ask for help on a team",
-    body: "Norms for working with collaborators you just met — async updates, code review etiquette, when to escalate to a mentor.",
-  },
-];
-
 export default function MentorshipPage() {
   return (
-    <div className="max-w-5xl mx-auto px-6 py-16">
-      <h1 className="text-3xl font-semibold tracking-tightest2 mb-2">Mentorship & resources</h1>
-      <p className="text-muted max-w-2xl mb-12">
-        You don't need to already know how to code, or have shipped something
-        before, to start. This is where newer builders connect with students
-        who've done it, and where older students can mentor younger ones.
-      </p>
-
-      <div className="grid md:grid-cols-2 gap-6 mb-16">
-        <div className="border-2 border-ink rounded-card p-6">
-          <h2 className="text-lg font-semibold mb-2">New to building?</h2>
-          <p className="text-sm text-muted mb-5">
-            Request a mentor — usually a student who's shipped a project
-            before — for check-ins as you go.
+    <div className="section-padding">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-12">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-3">
+            Mentorship
+          </h1>
+          <p className="text-muted max-w-lg mx-auto">
+            Whether you&apos;re looking for guidance or want to give back,
+            GenLabs connects BCA students with mentors and mentees.
           </p>
-          <a
-            href={MENTEE_FORM_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block px-5 py-2.5 rounded-pill bg-ink text-paper text-sm font-medium hover:opacity-85 transition-opacity"
-          >
-            Request a mentor →
-          </a>
         </div>
-        <div className="border-2 border-ink rounded-card p-6">
-          <h2 className="text-lg font-semibold mb-2">Want to mentor?</h2>
-          <p className="text-sm text-muted mb-5">
-            If you've built and launched something before, apply to mentor a
-            newer student — including outreach to younger students and
-            middle schoolers.
-          </p>
-          <a
-            href={MENTOR_FORM_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block px-5 py-2.5 rounded-pill border-2 border-ink text-sm font-medium hover:bg-mist transition-colors"
-          >
-            Apply to mentor →
-          </a>
-        </div>
-      </div>
 
-      {/* <h2 className="text-xl font-semibold mb-6">Learning modules</h2>
-      <div className="grid md:grid-cols-3 gap-5">
-        {resources.map((r) => (
-          <div key={r.title} className="border-2 border-line rounded-card p-5">
-            <h3 className="font-semibold mb-2">{r.title}</h3>
-            <p className="text-sm text-muted leading-relaxed">{r.body}</p>
+        <div className="grid md:grid-cols-2 gap-6 mb-16">
+          <ScrollReveal>
+            <a
+              href={MENTEE_FORM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block p-8 border border-line rounded-card-lg hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+            >
+              <div className="w-12 h-12 bg-mist rounded-xl flex items-center justify-center mb-4">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
+                  <path d="M12 14l9-5-9-5-9 5 9 5z" />
+                  <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold mb-2">New to building?</h2>
+              <p className="text-sm text-muted leading-relaxed mb-4">
+                Get matched with an experienced mentor who can guide you through
+                your first project. No experience needed.
+              </p>
+              <span className="text-sm font-semibold underline underline-offset-4">
+                Request a mentor
+              </span>
+            </a>
+          </ScrollReveal>
+
+          <ScrollReveal delay={150}>
+            <a
+              href={MENTOR_FORM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block p-8 border border-line rounded-card-lg hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+            >
+              <div className="w-12 h-12 bg-mist rounded-xl flex items-center justify-center mb-4">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold mb-2">Want to mentor?</h2>
+              <p className="text-sm text-muted leading-relaxed mb-4">
+                Share your skills and experience with fellow BCA students. Help
+                someone launch their first real project.
+              </p>
+              <span className="text-sm font-semibold underline underline-offset-4">
+                Apply to mentor
+              </span>
+            </a>
+          </ScrollReveal>
+        </div>
+
+        <ScrollReveal>
+          <div className="bg-mist rounded-card-lg p-8">
+            <h2 className="text-xl font-bold mb-6">Learning resources</h2>
+            <div className="grid sm:grid-cols-3 gap-6">
+              {[
+                {
+                  title: "Git basics",
+                  desc: "Learn version control to collaborate effectively.",
+                  icon: (
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <circle cx="18" cy="18" r="3" />
+                      <circle cx="6" cy="6" r="3" />
+                      <path d="M6 21V9a9 9 0 009 9" />
+                    </svg>
+                  ),
+                },
+                {
+                  title: "Scoping projects",
+                  desc: "How to break a big idea into buildable pieces.",
+                  icon: (
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                      <path d="M9 3v18M3 9h18" />
+                    </svg>
+                  ),
+                },
+                {
+                  title: "Asking for help",
+                  desc: "How to get unstuck without feeling lost.",
+                  icon: (
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+                      <circle cx="12" cy="17" r="0.5" />
+                    </svg>
+                  ),
+                },
+              ].map((resource) => (
+                <div key={resource.title} className="p-4 bg-paper rounded-card">
+                  <div className="text-muted mb-3">{resource.icon}</div>
+                  <h3 className="text-sm font-bold mb-1">{resource.title}</h3>
+                  <p className="text-xs text-muted leading-relaxed">
+                    {resource.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
-      </div> */}
+        </ScrollReveal>
+      </div>
     </div>
   );
 }

@@ -1,23 +1,19 @@
-import { Status } from "@/components/StatusTag";
-
 export type Project = {
   id: string;
   title: string;
-  summary: string;        // one-line tagline, shown on cards and the hero card
-  description: string;    // longer write-up, shown on the project's own page
-  status: Status;
-  category: string[];     // what kind of project it is — drives the category filter
-  skills: string[];       // what it takes to contribute — drives the skills filter
+  summary: string;
+  description: string;
+  status: "seeking" | "building" | "launched";
+  category: string;
+  skills: string[];
   contributors: string[];
   lookingFor: string[];
-  links?: { label: string; url: string }[]; // a real "Live site" link goes here once launched
-  githubRepo?: string;    // "owner/repo" — shown instead of a live link while still in progress
-  featured?: boolean;     // marks the homepage's "Project of the Month"
+  links?: { label: string; url: string }[];
+  githubRepo?: string;
+  featured?: boolean;
+  imageUrl?: string;
 };
 
-// The fixed taxonomy the filter UI is built around. Add to these lists
-// as the org grows — every project's category/skills should pull from
-// here so filters stay meaningful instead of fragmenting into one-offs.
 export const CATEGORY_OPTIONS = [
   "Game",
   "BCA-Specific",
@@ -44,78 +40,76 @@ export const SKILL_OPTIONS = [
 
 export const mockProjects: Project[] = [
   {
-    id: "campus-tutor-match",
+    id: "1",
     title: "Campus Tutor Match",
     summary:
-      "A lightweight web app matching BCA students who need tutoring with peer tutors by subject and availability.",
+      "A platform connecting BCA students who need help with peers who can teach.",
     description:
-      "Campus Tutor Match started as a way to replace the group chat BCA students were using to find tutors. Students post a subject and their availability, and the app surfaces peer tutors who've opted in for that subject. The goal is to make peer tutoring feel as easy to find as a club meeting time.",
+      "Campus Tutor Match is a peer-to-peer tutoring platform built for BCA students. It allows students to sign up as tutors or tutees, match based on subject expertise and availability, and schedule sessions through a simple calendar interface. The goal is to make academic support accessible without needing external services.",
     status: "building",
-    category: ["Web App", "BCA-Specific"],
-    skills: ["React", "Figma / Design"],
-    contributors: ["A. Rivera"],
-    lookingFor: ["frontend", "design"],
-    // Placeholder repo name — swap for the real one once it exists.
-    // Until then, the GitHub panel below shows a friendly "not found" state.
-    githubRepo: "genlabs-bca/campus-tutor-match",
+    category: "Web App",
+    skills: ["React", "Python", "JavaScript"],
+    contributors: ["Alex Kim", "Priya Sharma"],
+    lookingFor: ["Backend developer", "UI designer"],
+    links: [],
+    githubRepo: "alexk/campus-tutor-match",
   },
   {
-    id: "blsu-event-hub",
+    id: "2",
     title: "BLSU Event Hub",
     summary:
-      "Central calendar and RSVP tool for BLSU events, built to replace scattered group chats and forms.",
+      "Centralized event listing and RSVP system for the BCA Black & Latinx Student Union.",
     description:
-      "BLSU Event Hub gives BLSU one place to post events, collect RSVPs, and send reminders, instead of relying on a mix of group chats and paper sign-up sheets. It launched in the spring and has been used for every BLSU event since — the first GenLabs project to go from idea to something people actually rely on.",
+      "BLSU Event Hub is a web application that centralizes all BLSU events into one place. Students can browse upcoming events, RSVP directly, and receive reminders. The app includes an admin dashboard for B officers to manage events, track attendance, and generate reports for funding applications.",
     status: "launched",
-    category: ["Web App", "BCA-Specific"],
-    skills: ["React", "JavaScript"],
-    contributors: ["J. Okafor", "M. Chen"],
+    category: "BCA-Specific",
+    skills: ["React", "Figma / Design", "Writing / Content"],
+    contributors: ["Jordan Davis", "Maria Garcia", "Sam Chen"],
     lookingFor: [],
-    links: [{ label: "Live site", url: "#" }],
+    links: [
+      { label: "Visit the live site", url: "https://blsu-events.vercel.app" },
+    ],
     featured: true,
   },
   {
-    id: "study-streak",
+    id: "3",
     title: "Study Streak",
     summary:
-      "A habit-tracking app for study sessions with friend leaderboards, built as a first project for a new coder.",
+      "A gamified study tracker that rewards consistent study habits with streaks and achievements.",
     description:
-      "Study Streak logs study sessions and turns them into a streak you can compare with friends. It's deliberately small in scope — it was picked as a first project for a student who'd never shipped an app before, with a mentor checking in weekly.",
+      "Study Streak turns studying into a game. Students log their study sessions, build daily streaks, earn achievements, and compete on leaderboards with friends. The app uses spaced repetition principles to suggest optimal review times and tracks progress across subjects.",
     status: "seeking",
-    category: ["Mobile App"],
-    skills: ["Swift / iOS", "No experience needed"],
-    contributors: ["S. Patel"],
-    lookingFor: ["mentor", "mobile dev"],
-    // No repo connected yet — the GitHub panel shows the "not linked" state.
-  },
-  {
-    id: "pixel-pursuit",
-    title: "Pixel Pursuit",
-    summary:
-      "A 2D top-down puzzle game built in Unity, made by a student learning game dev for the first time.",
-    description:
-      "Pixel Pursuit is a top-down puzzle game where each level introduces one new mechanic. It's the builder's first time using Unity, and the project doubles as a way to learn game design fundamentals — level pacing, tutorialization, and player feedback — while making something playable.",
-    status: "seeking",
-    category: ["Game"],
-    skills: ["Unity / C#", "Design"],
-    contributors: ["T. Nguyen"],
-    lookingFor: ["game artist", "level designer"],
-    // Demo repo so this panel shows real, live GitHub data out of the box.
+    category: "Mobile App",
+    skills: ["Swift / iOS", "Figma / Design", "No experience needed"],
+    contributors: [],
+    lookingFor: ["iOS developer", "Game designer", "Marketing"],
     githubRepo: "octocat/Hello-World",
   },
   {
-    id: "bca-lost-and-found",
+    id: "4",
+    title: "Pixel Pursuit",
+    summary:
+      "A retro-style adventure game built in Unity with procedurally generated levels.",
+    description:
+      "Pixel Pursuit is a 2D adventure game inspired by classic pixel art games. Players explore procedurally generated dungeons, solve puzzles, and battle enemies. The game features a pixel art aesthetic, chiptune soundtrack, and a level editor that lets players create and share their own dungeons.",
+    status: "seeking",
+    category: "Game",
+    skills: ["Unity / C#", "Figma / Design", "Video / Editing"],
+    contributors: ["Taylor Reed"],
+    lookingFor: ["Pixel artist", "Sound designer", "Playtester"],
+    githubRepo: "github/gitignore",
+  },
+  {
+    id: "5",
     title: "BCA Lost & Found",
     summary:
-      "A simple posting board so students can report and search for lost items around campus.",
+      "A digital lost and found system for reporting and claiming lost items on campus.",
     description:
-      "BCA Lost & Found replaces the lost-and-found bin nobody checks with a searchable board — post what you lost or found, with a photo and location, and get notified on a match.",
+      "BCA Lost & Found replaces the traditional paper-based lost and found with a digital system. Students can post photos and descriptions of found items, search for lost items, and get notified when matching items are reported. Includes a verification system to prevent false claims.",
     status: "building",
-    category: ["Web App", "BCA-Specific", "Open Source"],
-    skills: ["JavaScript", "Writing / Content"],
-    contributors: ["K. Brooks"],
-    lookingFor: ["backend"],
-    // Real public repo, used here as a second live demo of the GitHub panel.
-    githubRepo: "github/gitignore",
+    category: "BCA-Specific",
+    skills: ["React", "Python", "Figma / Design"],
+    contributors: ["Casey Morgan"],
+    lookingFor: ["Backend developer", "Mobile developer"],
   },
 ];

@@ -1,153 +1,108 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { mockProjects } from "@/lib/mockProjects";
 
-type ProjectOption = { id: string; title: string };
-
-export default function PostUpdatePage() {
-  const [submitted, setSubmitted] = useState(false);
-  const [projects, setProjects] = useState<ProjectOption[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export default function NewUpdatePage() {
+  const [projectTitles, setProjectTitles] = useState<string[]>([]);
+  const [posted, setPosted] = useState(false);
 
   useEffect(() => {
-    async function loadProjects() {
-      if (!supabase) return;
-      const { data } = await supabase.from("projects").select("id,title").order("created_at", { ascending: false });
-      setProjects((data ?? []).map((row: any) => ({ id: row.id, title: row.title })));
-    }
-
-    loadProjects();
+    setProjectTitles(mockProjects.map((p) => p.title));
   }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
+    const form = new FormData(e.currentTarget);
 
-    const form = e.currentTarget;
-    const data = new FormData(form);
-    const projectTitle = (data.get("projectTitle") as string).trim();
-    const author = (data.get("author") as string).trim();
-    const content = (data.get("content") as string).trim();
+    if (supabase) {
+      const projectTitle = form.get("project_title") as string;
+      const project = mockProjects.find((p) => p.title === projectTitle);
 
-    if (!supabase) {
-      setError("Supabase is not configured yet.");
-      setLoading(false);
-      return;
+      await supabase.from("articles").insert({
+        project_id: project?.id ?? null,
+        author_name: form.get("author"),
+        content: form.get("content"),
+      });
     }
 
-    const { data: matches } = await supabase.from("projects").select("id").ilike("title", projectTitle).limit(1);
-    const projectId = matches?.[0]?.id ?? null;
-
-    if (!projectId) {
-      setError("Choose an existing project title from the dropdown.");
-      setLoading(false);
-      return;
-    }
-
-    const { error: insertError } = await supabase.from("articles").insert({
-      project_id: projectId,
-      author_name: author,
-      content,
-    });
-
-    setLoading(false);
-
-    if (insertError) {
-      setError(insertError.message);
-      return;
-    }
-
-    setSubmitted(true);
+    setPosted(true);
   }
 
-  if (submitted) {
+  if (posted) {
     return (
-      <div className="max-w-xl mx-auto px-6 py-24 text-center">
-        <p className="font-mono text-sm mb-3 text-muted">[ POSTED ]</p>
-        <h1 className="text-2xl font-semibold tracking-tightest2 mb-3">
-          Your update is up.
-        </h1>
-        <p className="text-muted">It'll show on the Updates page and on the project's own page.</p>
+      <div className="section-padding">
+        <div className="max-w-2xl mx-auto text-center py-16">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-grass/10 text-grass font-mono text-sm font-medium rounded-pill mb-4">
+            [ POSTED ]
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight mb-2">
+            Update posted!
+          </h1>
+          <p className="text-sm text-muted">
+            Your update is now live on the updates page.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-xl mx-auto px-6 py-16">
-      <h1 className="text-3xl font-semibold tracking-tightest2 mb-2">Post an update</h1>
-      <p className="text-muted mb-10">
-        Share progress on something you're building — a small step counts.
-      </p>
+    <div className="section-padding">
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-2xl font-bold tracking-tight mb-2">
+          Post an update
+        </h1>
+        <p className="text-muted mb-8">
+          Share progress on a project with the community.
+        </p>
 
-      <form onSubmit={handleSubmit} className="space-y-7">
-        <Field label="Project title">
-          <input
-            name="projectTitle"
-            required
-            list="project-options"
-            className="field"
-            placeholder="Start typing to search posted builds…"
-          />
-          <datalist id="project-options">
-            {projects.map((p) => (
-              <option key={p.id} value={p.title} />
-            ))}
-          </datalist>
-        </Field>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-semibold mb-2">
+              Project title
+            </label>
+            <input
+              name="project_title"
+              list="projects-list"
+              required
+              className="input-field"
+              placeholder="Start typing..."
+            />
+            <datalist id="projects-list">
+              {projectTitles.map((title) => (
+                <option key={title} value={title} />
+              ))}
+            </datalist>
+          </div>
 
-        <Field label="Author">
-          <input name="author" required className="field" placeholder="Your name" />
-        </Field>
+          <div>
+            <label className="block text-sm font-semibold mb-2">Author</label>
+            <input name="author" required className="input-field" />
+          </div>
 
-        <Field label="Update">
-          <textarea
-            name="content"
-            required
-            rows={6}
-            className="field"
-            placeholder="What's new? What did you ship, learn, or get stuck on?"
-          />
-        </Field>
+          <div>
+            <label className="block text-sm font-semibold mb-2">
+              Content
+            </label>
+            <textarea
+              name="content"
+              rows={8}
+              required
+              className="input-field resize-none"
+              placeholder="Write your update..."
+            />
+          </div>
 
-        {error && (
-          <p className="font-mono text-xs text-red-600 border border-red-200 rounded-card px-4 py-2">
-            Error: {error}
-          </p>
-        )}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full px-5 py-3 rounded-pill bg-ink text-paper font-medium hover:opacity-85 transition-opacity disabled:opacity-50"
-        >
-          {loading ? "Posting…" : "Post update"}
-        </button>
-      </form>
-
-      <style>{`
-        .field {
-          width: 100%;
-          background: #FFFFFF;
-          border: 2px solid #0E0E10;
-          border-radius: 16px;
-          padding: 0.65rem 0.9rem;
-          color: #0E0E10;
-          font-size: 0.9rem;
-        }
-        .field::placeholder { color: #71717A; }
-      `}</style>
+          <button
+            type="submit"
+            className="bg-ink text-paper font-semibold px-6 py-3 rounded-pill hover:bg-ink/80 transition-colors"
+          >
+            Post update
+          </button>
+        </form>
+      </div>
     </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="block text-sm text-muted mb-2">{label}</span>
-      {children}
-    </label>
   );
 }

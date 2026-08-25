@@ -1,48 +1,65 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 
-const links = [
-  { href: "/projects", label: "Builds" },
-  { href: "/updates", label: "Updates" },
-  { href: "/mentorship", label: "Mentorship" },
-  { href: "/team", label: "Team" },
-  { href: "/about", label: "About" },
-];
+type Props = {
+  links: { href: string; label: string }[];
+  open: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+};
 
-export default function MobileMenu() {
-  const [open, setOpen] = useState(false);
+export default function MobileMenu({ links, open, onToggle, onClose }: Props) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        onClose();
+      }
+    }
+    if (open) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open, onClose]);
 
   return (
-    <div className="md:hidden">
+    <div ref={ref} className="md:hidden">
       <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={onToggle}
+        className="p-2 -ml-2 rounded-lg hover:bg-mist transition-colors"
         aria-label="Toggle menu"
-        className="w-9 h-9 flex items-center justify-center rounded-pill border-2 border-ink"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
           {open ? (
-            <path d="M18 6L6 18M6 6l12 12" />
+            <path d="M5 5l10 10M5 15L15 5" />
           ) : (
-            <path d="M3 6h18M3 12h18M3 18h18" />
+            <path d="M3 6h14M3 10h14M3 14h14" />
           )}
         </svg>
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-16 bg-paper border-b-2 border-ink px-6 py-4 flex flex-col gap-3 z-40">
-          {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              onClick={() => setOpen(false)}
-              className="text-sm py-1"
-            >
-              {l.label}
-            </Link>
-          ))}
+        <div className="absolute top-16 left-0 right-0 bg-paper border-b border-line shadow-lg animate-fade-in">
+          <div className="flex flex-col p-5 gap-1">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={onClose}
+                className="px-4 py-3 text-sm font-medium rounded-xl hover:bg-mist transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
         </div>
       )}
     </div>

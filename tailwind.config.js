@@ -3,17 +3,17 @@ module.exports = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./lib/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
       colors: {
-        ink: "#0E0E10",      // off-black — text, borders, primary buttons
-        paper: "#FFFFFF",     // primary background
-        mist: "#F4F4F5",      // secondary surface (alternating sections, inputs)
-        line: "#E4E4E7",      // hairline borders on light surfaces
-        muted: "#71717A",     // secondary text
-        // Color exists only as "product content," never as interface chrome:
-        // the hero gradient and small status dots are the only places these appear.
+        ink: "#0E0E10",
+        paper: "#FFFFFF",
+        mist: "#F4F4F5",
+        line: "#E4E4E7",
+        muted: "#71717A",
+        glass: "rgba(255,255,255,0.72)",
         grass: "#4ADE80",
         sun: "#FFD23F",
         violet: "#A855F7",
@@ -27,7 +27,7 @@ module.exports = {
           "Roboto",
           "sans-serif",
         ],
-        mono: ["var(--font-mono)", "monospace"],
+        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       borderRadius: {
         pill: "9999px",
@@ -36,8 +36,26 @@ module.exports = {
       letterSpacing: {
         tightest2: "-0.04em",
       },
+      animation: {
+        "fade-in": "fadeIn 0.6s ease-out forwards",
+        "slide-up": "slideUp 0.6s ease-out forwards",
+        "scale-in": "scaleIn 0.4s ease-out forwards",
+      },
+      keyframes: {
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        slideUp: {
+          "0%": { opacity: "0", transform: "translateY(24px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        scaleIn: {
+          "0%": { opacity: "0", transform: "scale(0.95)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+      },
     },
   },
   plugins: [],
 };
-

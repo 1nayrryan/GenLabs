@@ -1,14 +1,13 @@
 -- Run this in the Supabase SQL editor (Project → SQL Editor → New query)
--- to set up the database. Tables map directly to the org's tracked metrics:
--- projects, members, mentors, partners.
+-- to set up the database.
 
 -- Student profiles (extends Supabase's built-in auth.users)
 create table if not exists profiles (
   id uuid references auth.users on delete cascade primary key,
   full_name text,
   grade_level text,
-  skills text[],            -- e.g. {'frontend','design','python'}
-  looking_for text[],       -- what they want help with or want to help with
+  skills text[],
+  looking_for text[],
   is_mentor boolean default false,
   created_at timestamp with time zone default now()
 );
@@ -45,20 +44,19 @@ create table if not exists projects (
   looking_for text[],
   team_members text[],
   owner_id uuid references profiles(id),
-  download_url text,        -- for "published products" / downloads
-  external_link text,       -- live site, repo, etc.
+  download_url text,
+  external_link text,
+  image_url text,
   created_at timestamp with time zone default now()
 );
 
--- Many-to-many: who's contributing to which project
 create table if not exists project_contributors (
   project_id uuid references projects(id) on delete cascade,
   profile_id uuid references profiles(id) on delete cascade,
-  role text,                -- e.g. 'frontend', 'mentor'
+  role text,
   primary key (project_id, profile_id)
 );
 
--- Mentor <-> mentee pairings
 create table if not exists mentorships (
   id uuid default gen_random_uuid() primary key,
   mentor_id uuid references profiles(id),
@@ -68,18 +66,15 @@ create table if not exists mentorships (
   created_at timestamp with time zone default now()
 );
 
--- Org/community partnerships (teachers, nonprofits, departments, clubs)
 create table if not exists partnerships (
   id uuid default gen_random_uuid() primary key,
   organization_name text not null,
   contact_name text,
-  partnership_type text,     -- e.g. 'advisor', 'project source', 'mentorship'
+  partnership_type text,
   notes text,
   started_at date default current_date
 );
 
--- Blog-style updates/articles, tied to a project, shown on /updates and
--- on that project's own page.
 create table if not exists articles (
   id uuid default gen_random_uuid() primary key,
   project_id uuid references projects(id) on delete cascade,
@@ -88,22 +83,12 @@ create table if not exists articles (
   created_at timestamp with time zone default now()
 );
 
--- Minimal page-view counter for the homepage "Visits" metric. This table
--- alone doesn't track anything automatically — you need one write per
--- visit. The simplest approach: call this from a Server Action or route
--- handler on page load, e.g.
---   await supabase.from("page_views").insert({ path: "/" })
--- Skip this until visits actually matter; the metric just reads 0 until
--- rows exist.
 create table if not exists page_views (
   id uuid default gen_random_uuid() primary key,
   path text,
   created_at timestamp with time zone default now()
 );
 
--- Row-level security: enable, then allow public read on projects
--- (so the board works for logged-out visitors) and restrict writes
--- to the authenticated owner.
 alter table projects enable row level security;
 
 drop policy if exists "Public can view projects" on projects;

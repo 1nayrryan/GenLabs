@@ -1,48 +1,48 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 export default function PostMenu() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
+    function handleClickOutside(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
-    <div className="relative" ref={ref}>
+    <div ref={ref} className="relative">
       <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="text-sm font-medium px-5 py-2 rounded-pill bg-ink text-paper hover:opacity-85 transition-opacity"
+        onClick={() => setOpen(!open)}
+        className="bg-ink text-paper text-sm font-semibold px-4 py-2 rounded-pill hover:bg-ink/80 transition-colors"
       >
         Post
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-64 rounded-card border-2 border-ink bg-paper shadow-lg overflow-hidden z-50">
+        <div className="absolute right-0 top-full mt-2 w-52 bg-paper border border-line rounded-xl shadow-xl p-2 animate-scale-in">
           <Link
             href="/submit"
             onClick={() => setOpen(false)}
-            className="block px-5 py-4 hover:bg-mist transition-colors border-b border-line"
+            className="block px-4 py-3 rounded-lg hover:bg-mist transition-colors"
           >
-            <p className="font-semibold mb-0.5">Post a build</p>
-            <p className="text-xs text-muted">Share a project, find collaborators</p>
+            <span className="text-sm font-semibold block">Post a build</span>
+            <span className="text-xs text-muted">Share your project</span>
           </Link>
           <Link
             href="/updates/new"
             onClick={() => setOpen(false)}
-            className="block px-5 py-3 hover:bg-mist transition-colors"
+            className="block px-4 py-3 rounded-lg hover:bg-mist transition-colors"
           >
-            <p className="text-sm font-medium">Post an update</p>
+            <span className="text-sm font-semibold block">Post an update</span>
+            <span className="text-xs text-muted">Share progress</span>
           </Link>
         </div>
       )}

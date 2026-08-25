@@ -1,219 +1,221 @@
-import { notFound } from "next/navigation";
 import Link from "next/link";
-import StatusTag from "@/components/StatusTag";
-import Tag from "@/components/Tag";
+import { notFound } from "next/navigation";
+import { mockProjects } from "@/lib/mockProjects";
+import { mockUpdates } from "@/lib/mockUpdates";
+import { isAdminUser, isProjectOwner } from "@/lib/auth";
 import GithubStats from "@/components/GithubStats";
 import DeleteProjectButton from "@/components/DeleteProjectButton";
-import { type Project } from "@/lib/mockProjects";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { isAdminUser, isProjectOwner } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-type ArticleRow = {
-  id: string;
-  author_name: string;
-  content: string;
-  created_at: string | null;
-};
+export default async function ProjectPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const project = mockProjects.find((p) => p.id === params.id);
+  if (!project) notFound();
 
-type ProjectRow = {
-  id: string;
-  owner_id: string;
-  title: string;
-  summary: string;
-  description: string | null;
-  status: string;
-  tags: string[] | null;
-  looking_for: string[] | null;
-  team_members: string[] | null;
-  external_link: string | null;
-};
+  const articles = mockUpdates.filter((u) => u.projectId === project.id);
+  const isOwner = await isProjectOwner(null);
+  const isAdmin = await isAdminUser();
 
-async function loadProject(id: string): Promise<(Project & { owner_id: string }) | null> {
-  try {
-    const supabase = await createServerSupabaseClient();
-    if (!supabase) return null;
-
-    const { data } = await supabase
-      .from("projects")
-      .select("id,owner_id,title,summary,description,status,tags,looking_for,team_members,external_link")
-      .eq("id", id)
-      .maybeSingle();
-
-    if (!data) return null;
-
-    const isGithub = data.external_link?.startsWith("https://github.com/");
-    return {
-      id: data.id,
-      owner_id: data.owner_id,
-      title: data.title,
-      summary: data.summary,
-      description: data.description ?? data.summary,
-      status: (data.status as Project["status"]) ?? "building",
-      category: data.tags ?? [],
-      skills: data.looking_for ?? [],
-      contributors: data.team_members ?? [],
-      lookingFor: data.looking_for ?? [],
-      links: data.external_link && !isGithub ? [{ label: "Live site", url: data.external_link }] : undefined,
-      githubRepo: isGithub ? data.external_link!.replace("https://github.com/", "").replace(/\/$/, "") : undefined,
-    };
-  } catch (error) {
-    console.error("Error loading project:", error);
-    return null;
-  }
-}
-
-async function loadArticles(projectId: string): Promise<ArticleRow[]> {
-  try {
-    const supabase = await createServerSupabaseClient();
-    if (!supabase) return [];
-
-    const { data } = await supabase
-      .from("articles")
-      .select("id,author_name,content,created_at")
-      .eq("project_id", projectId)
-      .order("created_at", { ascending: false });
-
-    return data ?? [];
-  } catch (error) {
-    console.error("Error loading articles:", error);
-    return [];
-  }
-}
-
-export default async function ProjectDetail({ params }: { params: { id: string } }) {
-  const project = await loadProject(params.id);
-  if (!project) return notFound();
-
-  const liveLink = project.links?.find((l) => l.label.toLowerCase().includes("site"));
-  const articles = await loadArticles(project.id);
-  const canEdit = (await isAdminUser()) || (await isProjectOwner(project.owner_id));
+  const statusColors: Record<string, string> = {
+    seeking: "bg-rose",
+    building: "bg-sun",
+    launched: "bg-grass",
+  };
+  const statusLabels: Record<string, string> = {
+    seeking: "Seeking collaborators",
+    building: "In progress",
+    launched: "Launched",
+  };
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-16">
-      <Link href="/projects" className="font-mono text-xs text-muted hover:text-ink underline">
-        ← All builds
-      </Link>
-
-      {/* Large title block */}
-      <div className="mt-4 mb-6">
-        <div className="flex items-start justify-between gap-4 mb-3">
-          <h1 className="text-3xl md:text-4xl font-semibold tracking-tightest2">{project.title}</h1>
-          <StatusTag status={project.status} />
-        </div>
-        <p className="text-lg text-muted leading-relaxed">{project.summary}</p>
-      </div>
-
-      <div className="flex flex-wrap gap-1.5 mb-10">
-        {project.category.map((c) => (
-          <Tag key={c} label={c} variant="solid" />
-        ))}
-        {project.skills.map((s) => (
-          <Tag key={s} label={s} variant="outline" />
-        ))}
-      </div>
-
-      {/* Description */}
-      <div className="mb-10">
-        <h2 className="font-mono text-xs text-muted uppercase tracking-wide mb-3">About</h2>
-        <p className="text-muted leading-relaxed whitespace-pre-line">{project.description}</p>
-      </div>
-
-      {/* Live link for finished products, GitHub stats for in-progress ones */}
-      <div className="mb-10">
-        {liveLink ? (
-          <a
-            href={liveLink.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block px-6 py-3 rounded-pill bg-ink text-paper font-medium hover:opacity-85 transition-opacity"
+    <div className="section-padding">
+      <div className="max-w-3xl mx-auto">
+        <Link
+          href="/projects"
+          className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink transition-colors mb-8"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 14 14"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
           >
-            Visit the live site →
-          </a>
-        ) : project.githubRepo ? (
-          <>
-            <h2 className="font-mono text-xs text-muted uppercase tracking-wide mb-3">
-              On GitHub
-            </h2>
-            <GithubStats repo={project.githubRepo} />
-          </>
-        ) : (
-          <p className="font-mono text-xs text-muted border-2 border-dashed border-line rounded-card p-4">
-            No GitHub repo linked yet.
-          </p>
-        )}
-      </div>
+            <path d="M9 2L4 7l5 5" />
+          </svg>
+          All builds
+        </Link>
 
-      <div className="grid md:grid-cols-2 gap-8 mb-10">
-        <div>
-          <h2 className="font-mono text-xs text-muted uppercase tracking-wide mb-2">
-            Contributors
-          </h2>
-          <ul className="text-sm space-y-1">
-            {project.contributors.map((c) => (
-              <li key={c}>{c}</li>
-            ))}
-          </ul>
+        <div className="mb-8">
+          <div className="flex items-start justify-between gap-4 mb-3">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+              {project.title}
+            </h1>
+            <span className="status-tag bg-mist flex-shrink-0">
+              <span
+                className={`status-dot ${statusColors[project.status]}`}
+              />
+              {statusLabels[project.status]}
+            </span>
+          </div>
+          <p className="text-lg text-muted leading-relaxed">{project.summary}</p>
         </div>
-        {project.lookingFor.length > 0 && (
-          <div>
-            <h2 className="font-mono text-xs text-muted uppercase tracking-wide mb-2">
-              Looking for
-            </h2>
-            <div className="flex flex-wrap gap-1.5">
-              {project.lookingFor.map((l) => (
-                <Tag key={l} label={l} />
+
+        <div className="flex flex-wrap gap-1.5 mb-8">
+          <span className="tag-solid">{project.category}</span>
+          {project.skills.map((skill) => (
+            <span key={skill} className="tag-outline">
+              {skill}
+            </span>
+          ))}
+        </div>
+
+        {project.description && (
+          <section className="mb-10">
+            <h2 className="text-lg font-bold mb-3">About this project</h2>
+            <p className="text-muted leading-relaxed whitespace-pre-line">
+              {project.description}
+            </p>
+          </section>
+        )}
+
+        {project.githubRepo ? (
+          <section className="mb-10">
+            <h2 className="text-lg font-bold mb-3">GitHub</h2>
+            <GithubStats repo={project.githubRepo} />
+          </section>
+        ) : project.links && project.links.length > 0 ? (
+          <section className="mb-10">
+            <h2 className="text-lg font-bold mb-3">Links</h2>
+            <div className="flex flex-wrap gap-3">
+              {project.links.map((link) => (
+                <a
+                  key={link.url}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-ink text-paper font-semibold px-5 py-2.5 rounded-pill hover:bg-ink/80 transition-colors text-sm"
+                >
+                  {link.label}
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  >
+                    <path d="M3 9l6-6M3 3h6v6" />
+                  </svg>
+                </a>
               ))}
             </div>
-          </div>
-        )}
-      </div>
-
-      {/* Articles */}
-      <div className="mb-10">
-        <h2 className="font-mono text-xs text-muted uppercase tracking-wide mb-3">Articles</h2>
-        {articles.length === 0 ? (
-          <p className="text-sm text-muted">No articles currently posted.</p>
+          </section>
         ) : (
-          <div className="space-y-3">
-            {articles.map((a) => (
-              <Link
-                key={a.id}
-                href={`/updates/${a.id}`}
-                className="block border-2 border-line rounded-card p-4 hover:border-ink transition-colors"
-              >
-                <p className="text-sm leading-relaxed mb-1">
-                  {a.content.slice(0, 100)}
-                  {a.content.length > 100 ? "…" : ""}
-                </p>
-                <p className="font-mono text-xs text-muted">
-                  {a.author_name} ·{" "}
-                  {new Date(a.created_at ?? Date.now()).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                </p>
-              </Link>
-            ))}
-          </div>
+          <section className="mb-10">
+            <div className="bg-mist rounded-card p-6 text-center">
+              <p className="text-sm text-muted">
+                No GitHub repo or live site linked yet.
+              </p>
+            </div>
+          </section>
         )}
-      </div>
 
-      <div className="flex flex-wrap gap-3">
-        <a
-          href={`mailto:genlabsteam@gmail.com?subject=Interested in ${project.title}`}
-          className="inline-block px-6 py-3 rounded-pill border-2 border-ink font-medium hover:bg-mist transition-colors"
-        >
-          I want to help build this
-        </a>
-        {canEdit && (
-          <>
+        {project.contributors.length > 0 && (
+          <section className="mb-10">
+            <h2 className="text-lg font-bold mb-3">Contributors</h2>
+            <div className="flex flex-wrap gap-2">
+              {project.contributors.map((name) => (
+                <span key={name} className="tag-outline">
+                  {name}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {project.lookingFor.length > 0 && (
+          <section className="mb-10">
+            <h2 className="text-lg font-bold mb-3">Looking for</h2>
+            <div className="flex flex-wrap gap-2">
+              {project.lookingFor.map((role) => (
+                <span key={role} className="tag-outline border-rose/30 text-rose">
+                  {role}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {articles.length > 0 && (
+          <section className="mb-10">
+            <h2 className="text-lg font-bold mb-3">Articles</h2>
+            <div className="space-y-3">
+              {articles.map((article) => (
+                <Link
+                  key={article.id}
+                  href={`/updates/${article.id}`}
+                  className="block p-4 border border-line rounded-card hover:bg-mist transition-colors"
+                >
+                  <p className="text-xs text-muted mb-1">
+                    {article.author} ·{" "}
+                    {new Date(article.date).toLocaleDateString()}
+                  </p>
+                  <p className="text-sm leading-relaxed line-clamp-2">
+                    {article.body}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {articles.length === 0 && (
+          <section className="mb-10">
+            <h2 className="text-lg font-bold mb-3">Articles</h2>
+            <p className="text-sm text-muted">
+              No articles currently posted.
+            </p>
+          </section>
+        )}
+
+        <section className="border-t border-line pt-8">
+          <p className="text-sm text-muted mb-4">
+            Want to help build this?
+          </p>
+          <a
+            href="mailto:genlabsteam@gmail.com"
+            className="inline-flex items-center gap-2 text-sm font-semibold bg-ink text-paper px-5 py-2.5 rounded-pill hover:bg-ink/80 transition-colors"
+          >
+            I want to help
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <path d="M1 6h10M7 2l4 4-4 4" />
+            </svg>
+          </a>
+        </section>
+
+        {(isOwner || isAdmin) && (
+          <section className="mt-8 pt-8 border-t border-line flex items-center gap-4">
             <Link
               href={`/projects/${project.id}/edit`}
-              className="inline-block px-6 py-3 rounded-pill bg-ink text-paper font-medium hover:opacity-85 transition-opacity"
+              className="text-sm font-medium text-muted hover:text-ink transition-colors"
             >
-              Edit project
+              Edit
             </Link>
-            <DeleteProjectButton projectId={project.id} />
-          </>
+            <DeleteProjectButton projectId={project.id} ownerId={null} />
+          </section>
         )}
       </div>
     </div>

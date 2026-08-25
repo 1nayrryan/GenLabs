@@ -1,25 +1,29 @@
-import { SiteMetrics } from "@/lib/metrics";
+export default function MetricsPanel({
+  metrics,
+}: {
+  metrics: { projects: number; members: number; partners: number; visits: number };
+}) {
+  const items = [
+    { label: "Projects", value: metrics.projects },
+    { label: "Builders", value: metrics.members },
+    { label: "Partners", value: metrics.partners },
+    { label: "Visits", value: metrics.visits },
+  ];
 
-function MetricRow({ label, value }: { label: string; value: number }) {
   return (
-    <div className="flex items-baseline justify-between gap-4">
-      <span className="font-mono text-[0.65rem] uppercase tracking-wide text-muted">
-        {label}
-      </span>
-      <span className="font-mono text-2xl font-semibold tracking-tightest2">
-        {value}
-      </span>
-    </div>
-  );
-}
-
-export default function MetricsPanel({ projects, members, partners, visits }: SiteMetrics) {
-  return (
-    <div className="bg-paper/95 backdrop-blur px-6 py-5 rounded-card border-2 border-ink w-60 space-y-2.5">
-      <MetricRow label="Projects" value={projects} />
-      <MetricRow label="Builders" value={members} />
-      <MetricRow label="Partners" value={partners} />
-      <MetricRow label="Visits" value={visits} />
+    <div className="glass rounded-card-lg p-6 md:p-8">
+      <div className="grid grid-cols-2 gap-6">
+        {items.map((item) => (
+          <div key={item.label}>
+            <p className="text-xs font-mono font-medium text-muted uppercase tracking-wider mb-1">
+              {item.label}
+            </p>
+            <p className="text-3xl md:text-4xl font-bold tracking-tighter2 font-mono">
+              {item.value}
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

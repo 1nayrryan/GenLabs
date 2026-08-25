@@ -1,43 +1,39 @@
 import { NextResponse } from "next/server";
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
 
 export async function GET(request: Request) {
-  const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get("code");
-  const next = requestUrl.searchParams.get("next") ?? "/";
-  const errorDescription = requestUrl.searchParams.get("error_description") ?? requestUrl.searchParams.get("error");
-  const redirectResponse = NextResponse.redirect(new URL(next, requestUrl.origin));
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get("code");
+  const next = searchParams.get("next") ?? "/";
 
-  if (errorDescription) {
-    console.error("Supabase auth callback error", errorDescription);
-    return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(next)}`, requestUrl.origin));
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return NextResponse.redirect(origin + "/login");
   }
 
   if (code) {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll(cookiesToSet: Array<{ name: string; value: string; options?: CookieOptions }>) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              redirectResponse.cookies.set({ name, value, ...options });
-            });
-          },
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          return request.headers
+            .get("cookie")
+            ?.split(";")
+            .map((c) => {
+              const [name, ...rest] = c.trim().split("=");
+              return { name, value: rest.join("=") };
+            }) ?? [];
         },
-      }
-    );
+        setAll() {},
+      },
+    });
 
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (error) {
-      console.error("Supabase auth callback failed", error.message);
+    if (!error) {
+      return NextResponse.redirect(origin + next);
     }
   }
 
-  return redirectResponse;
+  return NextResponse.redirect(origin + "/login");
 }

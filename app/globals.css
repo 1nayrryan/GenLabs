@@ -1,134 +1,189 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
-html {
-  scroll-behavior: smooth;
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background-color: #FFFFFF;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+  background: #ffffff;
   color: #0E0E10;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-weight: 450;
   letter-spacing: -0.01em;
 }
 
-h1, h2, h3, h4 {
-  font-weight: 650;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
   letter-spacing: -0.03em;
-  line-height: 1.05;
+  line-height: 1.1;
 }
 
-/* Figma-style dashed focus ring — the interface's one consistent "tell." */
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 2px dashed #0E0E10;
-  outline-offset: 3px;
+/* Focus states */
+*:focus-visible {
+  outline: 2px dashed #0a0a0b;
+  outline-offset: 2px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.001ms !important;
-    transition-duration: 0.001ms !important;
+/* Smooth scroll */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
   }
 }
 
-/* ---- Signature: pill status tags ----
-   The interface stays strictly black/white; color shows up only as a
-   small dot inside each tag, representing the project's real-world
-   state (content), never as decoration on the chrome itself. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Status tags */
 .status-tag {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.02em;
-  padding: 0.3rem 0.75rem 0.3rem 0.6rem;
-  border-radius: 9999px;
-  border: 1.5px solid #0E0E10;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  text-transform: uppercase;
-  font-weight: 540;
-  white-space: nowrap;
+  @apply inline-flex items-center gap-1.5 rounded-pill px-3 py-1 text-xs font-mono font-medium tracking-wide;
 }
 
 .status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
+  @apply h-2 w-2 rounded-full flex-shrink-0;
 }
 
-/* Pill chip — used for filters and tags */
+/* Chips */
 .chip {
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  padding: 0.45rem 1rem;
-  border-radius: 9999px;
-  border: 1.5px solid #0E0E10;
-  background: transparent;
-  color: #0E0E10;
-  transition: background-color 200ms ease-out, color 200ms ease-out;
-  white-space: nowrap;
+  @apply rounded-pill px-4 py-1.5 text-sm font-medium transition-all duration-200 cursor-pointer border select-none;
 }
 
 .chip[data-active="true"] {
-  background: #0E0E10;
-  color: #FFFFFF;
+  @apply bg-ink text-paper border-ink;
 }
 
-/* Display tags on project cards — separate from filter chips above so
-   changing filter styling never accidentally changes card tags. */
+.chip[data-active="false"],
+.chip:not([data-active]) {
+  @apply bg-transparent text-ink border-line hover:border-ink;
+}
+
+/* Tags */
 .tag {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 500;
-  padding: 0.28rem 0.7rem;
-  border-radius: 9999px;
-  border: 1.5px solid;
-  white-space: nowrap;
+  @apply inline-flex items-center rounded-pill px-3 py-1 text-xs font-medium;
 }
 
 .tag-solid {
-  background: #0E0E10;
-  color: #FFFFFF;
-  border-color: #0E0E10;
+  @apply tag bg-ink text-paper;
 }
 
 .tag-outline {
-  background: transparent;
-  color: #71717A;
-  border-color: #E4E4E7;
+  @apply tag bg-transparent text-ink border border-line;
 }
 
-/* Hero gradient mesh — the one place color is allowed to be loud */
+/* Hero gradient mesh — matching original site */
 .hero-mesh {
-  background:
-    radial-gradient(circle at 15% 20%, rgba(74, 222, 128, 0.55), transparent 40%),
-    radial-gradient(circle at 85% 15%, rgba(255, 210, 63, 0.5), transparent 40%),
-    radial-gradient(circle at 75% 80%, rgba(168, 85, 247, 0.55), transparent 45%),
-    radial-gradient(circle at 20% 85%, rgba(251, 100, 182, 0.5), transparent 45%);
+  position: relative;
+}
+
+.hero-mesh::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+      circle at 15% 20%,
+      rgba(74, 222, 128, 0.55),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 85% 15%,
+      rgba(255, 210, 63, 0.5),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 75% 80%,
+      rgba(168, 85, 247, 0.55),
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at 20% 85%,
+      rgba(251, 100, 182, 0.5),
+      transparent 45%
+    );
   filter: blur(8px);
+  z-index: 0;
 }
 
-/* Entry animation: fade + translate-Y, staggered for lists */
-@keyframes rise {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+.hero-mesh > * {
+  position: relative;
+  z-index: 1;
 }
 
-.rise {
-  animation: rise 420ms ease-out both;
+/* Partners horizontal scroll */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 30s linear infinite;
+}
+
+.animate-scroll:hover {
+  animation-play-state: paused;
+}
+
+/* Glass effect */
+.glass {
+  @apply bg-glass backdrop-blur-xl border border-white/20;
+}
+
+/* Card hover */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5;
+}
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Input styles */
+.input-field {
+  @apply w-full rounded-xl border border-line bg-white px-4 py-3 text-ink placeholder:text-muted transition-all duration-200 focus:border-ink focus:ring-0 focus:outline-none;
+}
+
+/* Section spacing */
+.section-padding {
+  @apply px-5 py-20 md:px-8 lg:px-12;
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-clip-text text-transparent;
+  background-image: linear-gradient(135deg, #0a0a0b 0%, #374151 100%);
 }

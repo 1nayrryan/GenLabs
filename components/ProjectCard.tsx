@@ -1,29 +1,55 @@
 import Link from "next/link";
-import StatusTag from "./StatusTag";
-import Tag from "./Tag";
-import { Project } from "@/lib/mockProjects";
+import type { Project } from "@/lib/mockProjects";
 
 export default function ProjectCard({ project }: { project: Project }) {
   return (
     <Link
       href={`/projects/${project.id}`}
-      className="block rounded-card border-2 border-ink p-6 bg-paper hover:bg-mist transition-colors group"
+      className="group block bg-paper border border-line rounded-card p-6 card-hover"
     >
       <div className="flex items-start justify-between gap-3 mb-3">
-        <h3 className="font-semibold text-lg leading-snug tracking-tightest2 group-hover:underline">
+        <h3 className="text-base font-bold tracking-tight leading-snug group-hover:underline">
           {project.title}
         </h3>
-        <StatusTag status={project.status} />
+        <StatusDot status={project.status} />
       </div>
-      <p className="text-sm text-muted mb-4 leading-relaxed">{project.summary}</p>
+
+      <p className="text-sm text-muted leading-relaxed mb-4 line-clamp-2">
+        {project.summary}
+      </p>
+
       <div className="flex flex-wrap gap-1.5">
-        {project.category.map((t) => (
-          <Tag key={t} label={t} variant="solid" />
+        <span className="tag-solid">{project.category}</span>
+        {project.skills.slice(0, 2).map((skill) => (
+          <span key={skill} className="tag-outline">
+            {skill}
+          </span>
         ))}
-        {project.skills.map((s) => (
-          <Tag key={s} label={s} variant="outline" />
-        ))}
+        {project.skills.length > 2 && (
+          <span className="tag-outline">+{project.skills.length - 2}</span>
+        )}
       </div>
     </Link>
+  );
+}
+
+function StatusDot({ status }: { status: Project["status"] }) {
+  const colors: Record<string, string> = {
+    seeking: "bg-rose",
+    building: "bg-sun",
+    launched: "bg-grass",
+  };
+
+  const labels: Record<string, string> = {
+    seeking: "Seeking collaborators",
+    building: "In progress",
+    launched: "Launched",
+  };
+
+  return (
+    <span className="status-tag bg-mist flex-shrink-0">
+      <span className={`status-dot ${colors[status]}`} />
+      <span className="hidden sm:inline">{labels[status]}</span>
+    </span>
   );
 }

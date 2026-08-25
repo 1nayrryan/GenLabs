@@ -1,213 +1,189 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { CATEGORY_OPTIONS, SKILL_OPTIONS } from "@/lib/mockProjects";
 
-export default function EditProjectPage({ params }: { params: { id: string } }) {
+export default function EditProjectPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const router = useRouter();
-
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [category, setCategory] = useState<string[]>([]);
-  const [skills, setSkills] = useState<string[]>([]);
-  const [form, setForm] = useState({
-    title: "",
-    summary: "",
-    description: "",
-    status: "building",
-    teamMembers: "",
-    lookingFor: "",
-    externalLink: "",
-  });
+  const [project, setProject] = useState<Record<string, unknown> | null>(null);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [customSkill, setCustomSkill] = useState("");
 
   useEffect(() => {
-    async function loadProject() {
+    async function load() {
       if (!supabase) {
-        setError("Database not configured.");
-        setLoading(false);
+        router.push("/login");
         return;
       }
-
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        router.replace("/login");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login?next=/projects/" + params.id + "/edit");
         return;
       }
-
-      const { data, error } = await supabase.from("projects").select("*").eq("id", params.id).maybeSingle();
-      if (error || !data) {
-        setError("Project not found.");
-        setLoading(false);
-        return;
-      }
-
-      if (data.owner_id && data.owner_id !== userData.user.id) {
-        setError("You can only edit projects you posted.");
-        setLoading(false);
-        return;
-      }
-
-      setForm({
-        title: data.title ?? "",
-        summary: data.summary ?? "",
-        description: data.description ?? "",
-        status: data.status ?? "building",
-        teamMembers: (data.team_members ?? []).join(", "),
-        lookingFor: (data.looking_for ?? []).join(", "),
-        externalLink: data.external_link ?? "",
-      });
-      setCategory(data.tags ?? []);
-      setSkills(data.looking_for ?? []);
+      // TODO: fetch real project from Supabase
       setLoading(false);
     }
-
-    loadProject();
-  }, [params.id, router, supabase]);
-
-  function toggle(list: string[], value: string, setList: (v: string[]) => void) {
-    setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
-  }
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setSaving(true);
-    setError(null);
-
-    if (!supabase) {
-      setError("Database not configured.");
-      setSaving(false);
-      return;
-    }
-
-    const lookingFor = form.lookingFor
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    const teamMembers = form.teamMembers
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    const { error } = await supabase.from("projects").update({
-      title: form.title,
-      summary: form.summary,
-      description: form.description,
-      status: form.status,
-      tags: category,
-      looking_for: [...skills, ...lookingFor],
-      team_members: teamMembers,
-      external_link: form.externalLink || null,
-    }).eq("id", params.id).eq("owner_id", (await supabase.auth.getUser()).data.user?.id);
-
-    setSaving(false);
-    if (error) {
-      setError(error.message);
-      return;
-    }
-
-    router.push(`/projects/${params.id}`);
-  }
+    load();
+  }, [params.id, router]);
 
   if (loading) {
-    return <div className="max-w-xl mx-auto px-6 py-24 text-center">Loading your project…</div>;
+    return (
+      <div className="section-padding">
+        <div className="max-w-2xl mx-auto">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-mist rounded w-1/3" />
+            <div className="h-10 bg-mist rounded" />
+            <div className="h-10 bg-mist rounded" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-xl mx-auto px-6 py-16">
-      <h1 className="text-3xl font-semibold tracking-tightest2 mb-2">Edit project</h1>
-      <p className="text-muted mb-10">Update the details for this build.</p>
-
-      <form onSubmit={handleSubmit} className="space-y-7">
-        <label className="block">
-          <span className="block text-sm text-muted mb-2">Project title</span>
-          <input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="field" />
-        </label>
-
-        <label className="block">
-          <span className="block text-sm text-muted mb-2">One-line summary</span>
-          <input required value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} className="field" />
-        </label>
-
-        <label className="block">
-          <span className="block text-sm text-muted mb-2">Team members</span>
-          <input value={form.teamMembers} onChange={(e) => setForm({ ...form, teamMembers: e.target.value })} className="field" />
-        </label>
-
-        <label className="block">
-          <span className="block text-sm text-muted mb-2">Description</span>
-          <textarea required rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="field" />
-        </label>
-
-        <label className="block">
-          <span className="block text-sm text-muted mb-2">Status</span>
-          <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="field">
-            <option value="seeking">Seeking collaborators</option>
-            <option value="building">In progress</option>
-            <option value="launched">Launched</option>
-          </select>
-        </label>
-
-        <label className="block">
-          <span className="block text-sm text-muted mb-2">Project type</span>
-          <div className="flex flex-wrap gap-2">
-            {CATEGORY_OPTIONS.map((c) => (
-              <button key={c} type="button" className="chip" data-active={category.includes(c)} onClick={() => toggle(category, c, setCategory)}>
-                {c}
-              </button>
-            ))}
+    <div className="section-padding">
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-2xl font-bold tracking-tight mb-6">Edit project</h1>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            alert("Saved! (Demo mode — connect Supabase to persist)");
+          }}
+          className="space-y-6"
+        >
+          <div>
+            <label className="block text-sm font-semibold mb-2">Title</label>
+            <input name="title" required className="input-field" />
           </div>
-        </label>
-
-        <label className="block">
-          <span className="block text-sm text-muted mb-2">Skills needed</span>
-          <div className="flex flex-wrap gap-2 mb-2">
-            {SKILL_OPTIONS.map((s) => (
-              <button key={s} type="button" className="chip" data-active={skills.includes(s)} onClick={() => toggle(skills, s, setSkills)}>
-                {s}
-              </button>
-            ))}
+          <div>
+            <label className="block text-sm font-semibold mb-2">Summary</label>
+            <input name="summary" required className="input-field" />
           </div>
-          <input value={form.lookingFor} onChange={(e) => setForm({ ...form, lookingFor: e.target.value })} className="field" />
-        </label>
-
-        <label className="block">
-          <span className="block text-sm text-muted mb-2">External link</span>
-          <input value={form.externalLink} onChange={(e) => setForm({ ...form, externalLink: e.target.value })} className="field" />
-        </label>
-
-        {error && <p className="font-mono text-xs text-red-600">{error}</p>}
-
-        <button type="submit" disabled={saving} className="w-full px-5 py-3 rounded-pill bg-ink text-paper font-medium hover:opacity-85 transition-opacity disabled:opacity-50">
-          {saving ? "Saving…" : "Save changes"}
-        </button>
-      </form>
-
-      <style>{`
-        .field {
-          width: 100%;
-          background: #FFFFFF;
-          border: 2px solid #0E0E10;
-          border-radius: 16px;
-          padding: 0.65rem 0.9rem;
-          color: #0E0E10;
-          font-size: 0.9rem;
-        }
-        .chip {
-          border: 2px solid #0E0E10;
-          border-radius: 999px;
-          padding: 0.35rem 0.7rem;
-          font-size: 0.85rem;
-          background: #FFFFFF;
-        }
-        .chip[data-active="true"] {
-          background: #0E0E10;
-          color: #FFFFFF;
-        }
-      `}</style>
+          <div>
+            <label className="block text-sm font-semibold mb-2">
+              Team Members
+            </label>
+            <input
+              name="team_members"
+              placeholder="Comma-separated"
+              className="input-field"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-2">
+              Description
+            </label>
+            <textarea
+              name="description"
+              rows={5}
+              className="input-field resize-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-2">Status</label>
+            <select name="status" className="input-field">
+              <option value="seeking">Seeking collaborators</option>
+              <option value="building">In progress</option>
+              <option value="launched">Launched</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-2">
+              Project Type
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORY_OPTIONS.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  data-active={selectedCategories.includes(cat)}
+                  className="chip"
+                  onClick={() =>
+                    setSelectedCategories((prev) =>
+                      prev.includes(cat)
+                        ? prev.filter((c) => c !== cat)
+                        : [...prev, cat]
+                    )
+                  }
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-2">Skills</label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {SKILL_OPTIONS.map((skill) => (
+                <button
+                  key={skill}
+                  type="button"
+                  data-active={selectedSkills.includes(skill)}
+                  className="chip"
+                  onClick={() =>
+                    setSelectedSkills((prev) =>
+                      prev.includes(skill)
+                        ? prev.filter((s) => s !== skill)
+                        : [...prev, skill]
+                    )
+                  }
+                >
+                  {skill}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input
+                placeholder="Custom skill"
+                value={customSkill}
+                onChange={(e) => setCustomSkill(e.target.value)}
+                className="input-field flex-1"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (customSkill.trim()) {
+                    setSelectedSkills((prev) => [
+                      ...prev,
+                      customSkill.trim(),
+                    ]);
+                    setCustomSkill("");
+                  }
+                }}
+                className="bg-mist text-ink font-medium px-4 rounded-pill text-sm hover:bg-line transition-colors"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-2">
+              External Link
+            </label>
+            <input
+              name="external_link"
+              placeholder="https://..."
+              className="input-field"
+            />
+          </div>
+          <button
+            type="submit"
+            className="bg-ink text-paper font-semibold px-6 py-3 rounded-pill hover:bg-ink/80 transition-colors"
+          >
+            Save changes
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
