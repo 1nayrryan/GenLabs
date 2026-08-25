@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Project } from "@/lib/mockProjects";
+import type { Project } from "@/lib/types";
 
 export default function ProjectOfMonth({ project }: { project: Project }) {
   return (

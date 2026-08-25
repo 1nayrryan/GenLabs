@@ -1,13 +1,16 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function SubmitProjectForm() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -40,15 +43,61 @@ export default function SubmitProjectForm() {
       }
     }
 
-    // TODO: Insert project into Supabase with imageUrl
-    console.log("Project image URL:", imageUrl);
-    console.log("Form data:", Object.fromEntries(form));
+    if (supabase) {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const teamMembers = form.get("team_members") as string;
+      const lookingFor = form.get("looking_for") as string;
+
+      await supabase.from("projects").insert({
+        title: form.get("title"),
+        summary: form.get("summary"),
+        description: form.get("description") || "",
+        status: form.get("status"),
+        tags: [],
+        team_members: teamMembers
+          ? teamMembers.split(",").map((s: string) => s.trim())
+          : [],
+        looking_for: lookingFor
+          ? lookingFor.split(",").map((s: string) => s.trim())
+          : [],
+        owner_id: user?.id || null,
+        external_link: form.get("external_link") || "",
+        image_url: imageUrl || null,
+      });
+
+      setSubmitted(true);
+    } else {
+      alert("Project submitted! (Demo mode — connect Supabase to save)");
+    }
 
     setUploading(false);
-    alert("Project submitted! (Demo mode — connect Supabase to save)");
-    (e.target as HTMLFormElement).reset();
-    setImageFile(null);
-    setImagePreview(null);
+  }
+
+  if (submitted) {
+    return (
+      <div className="text-center py-12">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-grass/10 text-grass font-mono text-sm font-medium rounded-pill mb-4">
+          [ POSTED ]
+        </div>
+        <h2 className="text-xl font-bold tracking-tight mb-2">
+          Project submitted!
+        </h2>
+        <p className="text-sm text-muted mb-6">
+          Your project is now live on the builds page.
+        </p>
+        <button
+          onClick={() => {
+            setSubmitted(false);
+            setImageFile(null);
+            setImagePreview(null);
+          }}
+          className="text-sm font-semibold underline underline-offset-4 hover:text-muted transition-colors"
+        >
+          Submit another
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -70,6 +119,17 @@ export default function SubmitProjectForm() {
         <input
           name="team_members"
           placeholder="Comma-separated names"
+          className="input-field"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold mb-2">
+          Looking For
+        </label>
+        <input
+          name="looking_for"
+          placeholder="e.g. Backend developer, UI designer"
           className="input-field"
         />
       </div>

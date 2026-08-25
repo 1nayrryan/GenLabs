@@ -1,19 +1,34 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { mockUpdates } from "@/lib/mockUpdates";
-import { mockProjects } from "@/lib/mockProjects";
+import { type Update } from "@/lib/types";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-export default function UpdateDetailPage({
+export default async function UpdateDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const update = mockUpdates.find((u) => u.id === params.id);
-  if (!update) notFound();
+  const supabase = getSupabaseServerClient();
+  if (!supabase) notFound();
 
-  const project = mockProjects.find((p) => p.id === update.projectId);
+  const { data } = await supabase
+    .from("articles")
+    .select("*, projects!inner(title)")
+    .eq("id", params.id)
+    .single();
+
+  if (!data) notFound();
+
+  const update: Update = {
+    id: data.id,
+    projectId: data.project_id,
+    projectTitle: (data.projects as { title: string })?.title || "Project",
+    author: data.author_name,
+    date: data.created_at,
+    body: data.content,
+  };
 
   return (
     <div className="section-padding">
@@ -52,24 +67,22 @@ export default function UpdateDetailPage({
           </p>
         </div>
 
-        {project && (
-          <Link
-            href={`/projects/${project.id}`}
-            className="inline-flex items-center gap-2 text-sm font-semibold bg-ink text-paper px-5 py-2.5 rounded-pill hover:bg-ink/80 transition-colors"
+        <Link
+          href={`/projects/${update.projectId}`}
+          className="inline-flex items-center gap-2 text-sm font-semibold bg-ink text-paper px-5 py-2.5 rounded-pill hover:bg-ink/80 transition-colors"
+        >
+          View project
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 12 12"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
           >
-            View project
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 12 12"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <path d="M1 6h10M7 2l4 4-4 4" />
-            </svg>
-          </Link>
-        )}
+            <path d="M1 6h10M7 2l4 4-4 4" />
+          </svg>
+        </Link>
       </div>
     </div>
   );

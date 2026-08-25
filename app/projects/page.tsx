@@ -1,54 +1,34 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { mockProjects, Project } from "@/lib/mockProjects";
+import { type Project, rowToProject } from "@/lib/types";
 import ProjectCard from "@/components/ProjectCard";
 import ProjectFilters from "@/components/ProjectFilters";
-
-function rowToProject(row: Record<string, unknown>): Project {
-  const ext = (row.external_link as string) || "";
-  const isGitHub =
-    ext.includes("github.com") && !ext.includes("github.com/");
-
-  return {
-    id: row.id as string,
-    title: row.title as string,
-    summary: row.summary as string,
-    description: (row.description as string) || "",
-    status: (row.status as Project["status"]) || "seeking",
-    category: ((row.tags as string[])?.[0] as string) || "Web App",
-    skills: (row.tags as string[]) || [],
-    contributors: (row.team_members as string[]) || [],
-    lookingFor: (row.looking_for as string[]) || [],
-    links: ext && !isGitHub ? [{ label: "Visit site", url: ext }] : [],
-    githubRepo: isGitHub
-      ? ext.replace("https://github.com/", "")
-      : undefined,
-  };
-}
 
 export default function ProjectsPage() {
   const [search, setSearch] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [skills, setSkills] = useState<string[]>([]);
   const [status, setStatus] = useState("all");
-  const [projects, setProjects] = useState<Project[]>(mockProjects);
-  const [usingDb, setUsingDb] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Try to load from Supabase on mount
-  useState(() => {
-    if (!supabase) return;
+  useEffect(() => {
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
     supabase
       .from("projects")
       .select("*")
       .then(({ data, error }) => {
-        if (!error && data && data.length > 0) {
+        if (!error && data) {
           setProjects(data.map(rowToProject));
-          setUsingDb(true);
         }
+        setLoading(false);
       });
-  });
+  }, []);
 
   const filtered = useMemo(() => {
     let result = projects;
@@ -91,11 +71,6 @@ export default function ProjectsPage() {
           </h1>
           <p className="text-muted">
             Browse projects from BCA students or find one to contribute to.
-            {usingDb && (
-              <span className="ml-2 text-xs font-mono text-grass">
-                (live)
-              </span>
-            )}
           </p>
         </div>
 
@@ -118,7 +93,17 @@ export default function ProjectsPage() {
           </aside>
 
           <div>
-            {filtered.length > 0 ? (
+            {loading ? (
+              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse border border-line rounded-card p-6">
+                    <div className="h-5 bg-mist rounded w-2/3 mb-3" />
+                    <div className="h-4 bg-mist rounded w-full mb-2" />
+                    <div className="h-4 bg-mist rounded w-4/5" />
+                  </div>
+                ))}
+              </div>
+            ) : filtered.length > 0 ? (
               <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 {filtered.map((project) => (
                   <ProjectCard key={project.id} project={project} />
@@ -127,7 +112,9 @@ export default function ProjectsPage() {
             ) : (
               <div className="text-center py-16">
                 <p className="text-muted text-sm">
-                  No projects match your filters.
+                  {projects.length === 0
+                    ? "No projects yet — be the first to post one."
+                    : "No projects match your filters."}
                 </p>
               </div>
             )}

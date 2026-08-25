@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { mockProjects } from "@/lib/mockProjects";
-import { mockUpdates } from "@/lib/mockUpdates";
+import { type Project, rowToProject } from "@/lib/types";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { isAdminUser, isProjectOwner } from "@/lib/auth";
 import GithubStats from "@/components/GithubStats";
 import DeleteProjectButton from "@/components/DeleteProjectButton";
@@ -13,10 +13,33 @@ export default async function ProjectPage({
 }: {
   params: { id: string };
 }) {
-  const project = mockProjects.find((p) => p.id === params.id);
-  if (!project) notFound();
+  const supabase = getSupabaseServerClient();
+  if (!supabase) notFound();
 
-  const articles = mockUpdates.filter((u) => u.projectId === project.id);
+  const { data } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("id", params.id)
+    .single();
+
+  if (!data) notFound();
+
+  const project = rowToProject(data);
+  const ownerId = (data.owner_id as string) || null;
+
+  const { data: articlesData } = await supabase
+    .from("articles")
+    .select("*")
+    .eq("project_id", params.id)
+    .order("created_at", { ascending: false });
+
+  const articles = (articlesData || []).map((row) => ({
+    id: row.id,
+    author: row.author_name,
+    date: row.created_at,
+    body: row.content,
+  }));
+
   const isOwner = await isProjectOwner(null);
   const isAdmin = await isAdminUser();
 
@@ -214,7 +237,7 @@ export default async function ProjectPage({
             >
               Edit
             </Link>
-            <DeleteProjectButton projectId={project.id} ownerId={null} />
+            <DeleteProjectButton projectId={project.id} ownerId={ownerId} />
           </section>
         )}
       </div>

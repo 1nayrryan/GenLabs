@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { mockProjects } from "@/lib/mockProjects";
+import { type Project, rowToProject } from "@/lib/types";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 import ProjectCard from "@/components/ProjectCard";
 import ProjectOfMonth from "@/components/ProjectOfMonth";
 import PartnersStrip from "@/components/PartnersStrip";
@@ -8,7 +9,16 @@ import ScrollReveal from "@/components/ScrollReveal";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const projects = mockProjects;
+  let projects: Project[] = [];
+
+  const supabase = getSupabaseServerClient();
+  if (supabase) {
+    const { data } = await supabase.from("projects").select("*");
+    if (data) {
+      projects = data.map(rowToProject);
+    }
+  }
+
   const featured =
     projects.find((p) => p.featured) ??
     projects.find((p) => p.status === "launched") ??

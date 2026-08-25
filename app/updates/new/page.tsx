@@ -2,14 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { mockProjects } from "@/lib/mockProjects";
 
 export default function NewUpdatePage() {
-  const [projectTitles, setProjectTitles] = useState<string[]>([]);
+  const [projects, setProjects] = useState<{ id: string; title: string }[]>([]);
   const [posted, setPosted] = useState(false);
 
   useEffect(() => {
-    setProjectTitles(mockProjects.map((p) => p.title));
+    if (!supabase) return;
+    supabase
+      .from("projects")
+      .select("id, title")
+      .order("title")
+      .then(({ data }) => {
+        if (data) setProjects(data);
+      });
   }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -18,7 +24,7 @@ export default function NewUpdatePage() {
 
     if (supabase) {
       const projectTitle = form.get("project_title") as string;
-      const project = mockProjects.find((p) => p.title === projectTitle);
+      const project = projects.find((p) => p.title === projectTitle);
 
       await supabase.from("articles").insert({
         project_id: project?.id ?? null,
@@ -71,8 +77,8 @@ export default function NewUpdatePage() {
               placeholder="Start typing..."
             />
             <datalist id="projects-list">
-              {projectTitles.map((title) => (
-                <option key={title} value={title} />
+              {projects.map((p) => (
+                <option key={p.id} value={p.title} />
               ))}
             </datalist>
           </div>

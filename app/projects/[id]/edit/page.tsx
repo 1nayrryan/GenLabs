@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { CATEGORY_OPTIONS, SKILL_OPTIONS } from "@/lib/mockProjects";
+import { CATEGORY_OPTIONS, SKILL_OPTIONS } from "@/lib/constants";
 
 export default function EditProjectPage({
   params,
@@ -12,6 +12,7 @@ export default function EditProjectPage({
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [project, setProject] = useState<Record<string, unknown> | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
@@ -30,11 +31,62 @@ export default function EditProjectPage({
         router.push("/login?next=/projects/" + params.id + "/edit");
         return;
       }
-      // TODO: fetch real project from Supabase
+
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("id", params.id)
+        .single();
+
+      if (error || !data) {
+        router.push("/projects");
+        return;
+      }
+
+      if (data.owner_id !== user.id) {
+        router.push("/projects/" + params.id);
+        return;
+      }
+
+      setProject(data);
+      setSelectedCategories((data.tags as string[]) || []);
+      setSelectedSkills(
+        ((data.tags as string[]) || []).filter((t: string) =>
+          (SKILL_OPTIONS as readonly string[]).includes(t)
+        )
+      );
       setLoading(false);
     }
     load();
   }, [params.id, router]);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!supabase || !project) return;
+    setSaving(true);
+
+    const form = new FormData(e.currentTarget);
+
+    await supabase
+      .from("projects")
+      .update({
+        title: form.get("title"),
+        summary: form.get("summary"),
+        description: form.get("description") || "",
+        status: form.get("status"),
+        tags: [...selectedCategories, ...selectedSkills],
+        team_members: ((form.get("team_members") as string) || "")
+          .split(",")
+          .map((s: string) => s.trim())
+          .filter(Boolean),
+        external_link: form.get("external_link") || "",
+      })
+      .eq("id", params.id);
+
+    setSaving(false);
+    router.push("/projects/" + params.id);
+    router.refresh();
+  }
 
   if (loading) {
     return (
@@ -54,20 +106,24 @@ export default function EditProjectPage({
     <div className="section-padding">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold tracking-tight mb-6">Edit project</h1>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            alert("Saved! (Demo mode — connect Supabase to persist)");
-          }}
-          className="space-y-6"
-        >
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-semibold mb-2">Title</label>
-            <input name="title" required className="input-field" />
+            <input
+              name="title"
+              required
+              className="input-field"
+              defaultValue={(project?.title as string) || ""}
+            />
           </div>
           <div>
             <label className="block text-sm font-semibold mb-2">Summary</label>
-            <input name="summary" required className="input-field" />
+            <input
+              name="summary"
+              required
+              className="input-field"
+              defaultValue={(project?.summary as string) || ""}
+            />
           </div>
           <div>
             <label className="block text-sm font-semibold mb-2">
@@ -77,6 +133,9 @@ export default function EditProjectPage({
               name="team_members"
               placeholder="Comma-separated"
               className="input-field"
+              defaultValue={
+                ((project?.team_members as string[]) || []).join(", ") || ""
+              }
             />
           </div>
           <div>
@@ -87,11 +146,16 @@ export default function EditProjectPage({
               name="description"
               rows={5}
               className="input-field resize-none"
+              defaultValue={(project?.description as string) || ""}
             />
           </div>
           <div>
             <label className="block text-sm font-semibold mb-2">Status</label>
-            <select name="status" className="input-field">
+            <select
+              name="status"
+              className="input-field"
+              defaultValue={(project?.status as string) || "seeking"}
+            >
               <option value="seeking">Seeking collaborators</option>
               <option value="building">In progress</option>
               <option value="launched">Launched</option>
@@ -174,13 +238,15 @@ export default function EditProjectPage({
               name="external_link"
               placeholder="https://..."
               className="input-field"
+              defaultValue={(project?.external_link as string) || ""}
             />
           </div>
           <button
             type="submit"
-            className="bg-ink text-paper font-semibold px-6 py-3 rounded-pill hover:bg-ink/80 transition-colors"
+            disabled={saving}
+            className="bg-ink text-paper font-semibold px-6 py-3 rounded-pill hover:bg-ink/80 transition-colors disabled:opacity-50"
           >
-            Save changes
+            {saving ? "Saving..." : "Save changes"}
           </button>
         </form>
       </div>

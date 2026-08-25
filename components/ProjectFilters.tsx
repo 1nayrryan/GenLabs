@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CATEGORY_OPTIONS, SKILL_OPTIONS } from "@/lib/mockProjects";
+import { CATEGORY_OPTIONS, SKILL_OPTIONS } from "@/lib/constants";
 
 type Props = {
   onSearch: (q: string) => void;

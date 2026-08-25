@@ -1,13 +1,32 @@
 import Link from "next/link";
-import { mockUpdates } from "@/lib/mockUpdates";
+import { type Update } from "@/lib/types";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 import ScrollReveal from "@/components/ScrollReveal";
 
 export const dynamic = "force-dynamic";
 
-export default function UpdatesPage() {
-  const updates = [...mockUpdates].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+export default async function UpdatesPage() {
+  let updates: Update[] = [];
+
+  const supabase = getSupabaseServerClient();
+  if (supabase) {
+    const { data } = await supabase
+      .from("articles")
+      .select("*, projects!inner(title)")
+      .order("created_at", { ascending: false });
+
+    if (data) {
+      updates = data.map((row) => ({
+        id: row.id,
+        projectId: row.project_id,
+        projectTitle:
+          (row.projects as { title: string })?.title || "Project",
+        author: row.author_name,
+        date: row.created_at,
+        body: row.content,
+      }));
+    }
+  }
 
   return (
     <div className="section-padding">
