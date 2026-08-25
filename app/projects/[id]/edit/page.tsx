@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { CATEGORY_OPTIONS, SKILL_OPTIONS } from "@/lib/constants";
 
+const ADMIN_ID = process.env.NEXT_PUBLIC_ADMIN_USER_ID;
+
 export default function EditProjectPage({
   params,
 }: {
@@ -43,7 +45,7 @@ export default function EditProjectPage({
         return;
       }
 
-      if (data.owner_id !== user.id) {
+      if (data.owner_id !== user.id && user.id !== ADMIN_ID) {
         router.push("/projects/" + params.id);
         return;
       }

@@ -87,6 +87,24 @@ export default function GithubStats({ repo }: { repo: string }) {
           {data.readme}
         </p>
       )}
+      <a
+        href={`https://github.com/${data.repo}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 mt-4 text-sm font-semibold bg-ink text-paper px-5 py-2.5 rounded-pill hover:bg-ink/80 transition-colors"
+      >
+        View on GitHub
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        >
+          <path d="M3 9l6-6M3 3h6v6" />
+        </svg>
+      </a>
     </div>
   );
 }

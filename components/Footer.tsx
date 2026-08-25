@@ -46,7 +46,7 @@ export default function Footer() {
               Instagram
             </a>
             <a
-              href="Linkedin"
+              href="https://www.linkedin.com/company/genlabs-co"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-ink"

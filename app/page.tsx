@@ -1,29 +1,35 @@
+"use client";
+
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabaseClient";
 import { type Project, rowToProject } from "@/lib/types";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
 import ProjectCard from "@/components/ProjectCard";
 import ProjectOfMonth from "@/components/ProjectOfMonth";
 import PartnersStrip from "@/components/PartnersStrip";
 import ScrollReveal from "@/components/ScrollReveal";
 
-export const dynamic = "force-dynamic";
+export default function HomePage() {
+  const [projects, setProjects] = useState<Project[]>([]);
 
-export default async function HomePage() {
-  let projects: Project[] = [];
-
-  const supabase = getSupabaseServerClient();
-  if (supabase) {
-    const { data } = await supabase.from("projects").select("*");
-    if (data) {
-      projects = data.map(rowToProject);
+  useEffect(() => {
+    async function load() {
+      if (!supabase) return;
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) return;
+      if (data) setProjects(data.map(rowToProject));
     }
-  }
+    load();
+  }, []);
 
   const featured =
     projects.find((p) => p.featured) ??
     projects.find((p) => p.status === "launched") ??
     projects[0];
-  const openBuilds = projects.filter((p) => p.status === "seeking").slice(0, 3);
+  const openBuilds = projects.slice(0, 3);
 
   return (
     <>

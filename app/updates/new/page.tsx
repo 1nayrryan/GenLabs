@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function NewUpdatePage() {
+  const router = useRouter();
   const [projects, setProjects] = useState<{ id: string; title: string }[]>([]);
   const [posted, setPosted] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!supabase) return;
@@ -21,18 +24,25 @@ export default function NewUpdatePage() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
+    setSaving(true);
 
     if (supabase) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       const projectTitle = form.get("project_title") as string;
       const project = projects.find((p) => p.title === projectTitle);
 
       await supabase.from("articles").insert({
         project_id: project?.id ?? null,
         author_name: form.get("author"),
+        author_id: user?.id ?? null,
         content: form.get("content"),
       });
     }
 
+    setSaving(false);
     setPosted(true);
   }
 
@@ -103,9 +113,10 @@ export default function NewUpdatePage() {
 
           <button
             type="submit"
-            className="bg-ink text-paper font-semibold px-6 py-3 rounded-pill hover:bg-ink/80 transition-colors"
+            disabled={saving}
+            className="bg-ink text-paper font-semibold px-6 py-3 rounded-pill hover:bg-ink/80 transition-colors disabled:opacity-50"
           >
-            Post update
+            {saving ? "Posting..." : "Post update"}
           </button>
         </form>
       </div>

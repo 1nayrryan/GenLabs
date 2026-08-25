@@ -26,7 +26,7 @@ export type Update = {
 export function rowToProject(row: Record<string, unknown>): Project {
   const ext = (row.external_link as string) || "";
   const isGitHub =
-    ext.includes("github.com") && !ext.includes("github.com/");
+    ext.includes("github.com/");
 
   return {
     id: row.id as string,

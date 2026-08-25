@@ -79,6 +79,7 @@ create table if not exists articles (
   id uuid default gen_random_uuid() primary key,
   project_id uuid references projects(id) on delete cascade,
   author_name text not null,
+  author_id uuid references auth.users,
   content text not null,
   created_at timestamp with time zone default now()
 );
@@ -133,3 +134,7 @@ create policy "Anyone can insert articles"
 create policy "Anyone can update articles"
   on articles for update
   using (true);
+
+create policy "Authors can delete their articles"
+  on articles for delete
+  using (auth.uid() = author_id);

@@ -32,6 +32,7 @@ module.exports = {
       borderRadius: {
         pill: "9999px",
         card: "28px",
+        "card-lg": "32px",
       },
       letterSpacing: {
         tightest2: "-0.04em",

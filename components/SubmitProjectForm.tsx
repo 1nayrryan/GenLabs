@@ -1,16 +1,18 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { CATEGORY_OPTIONS, SKILL_OPTIONS } from "@/lib/constants";
 
 export default function SubmitProjectForm() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [customSkill, setCustomSkill] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const router = useRouter();
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -54,7 +56,7 @@ export default function SubmitProjectForm() {
         summary: form.get("summary"),
         description: form.get("description") || "",
         status: form.get("status"),
-        tags: [],
+        tags: [...selectedCategories, ...selectedSkills],
         team_members: teamMembers
           ? teamMembers.split(",").map((s: string) => s.trim())
           : [],
@@ -91,6 +93,8 @@ export default function SubmitProjectForm() {
             setSubmitted(false);
             setImageFile(null);
             setImagePreview(null);
+            setSelectedCategories([]);
+            setSelectedSkills([]);
           }}
           className="text-sm font-semibold underline underline-offset-4 hover:text-muted transition-colors"
         >
@@ -110,6 +114,76 @@ export default function SubmitProjectForm() {
       <div>
         <label className="block text-sm font-semibold mb-2">Summary</label>
         <input name="summary" required className="input-field" />
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold mb-2">
+          Project Type
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {CATEGORY_OPTIONS.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              data-active={selectedCategories.includes(cat)}
+              className="chip"
+              onClick={() =>
+                setSelectedCategories((prev) =>
+                  prev.includes(cat)
+                    ? prev.filter((c) => c !== cat)
+                    : [...prev, cat]
+                )
+              }
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-semibold mb-2">
+          Skills Required
+        </label>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {SKILL_OPTIONS.map((skill) => (
+            <button
+              key={skill}
+              type="button"
+              data-active={selectedSkills.includes(skill)}
+              className="chip"
+              onClick={() =>
+                setSelectedSkills((prev) =>
+                  prev.includes(skill)
+                    ? prev.filter((s) => s !== skill)
+                    : [...prev, skill]
+                )
+              }
+            >
+              {skill}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input
+            placeholder="Custom skill"
+            value={customSkill}
+            onChange={(e) => setCustomSkill(e.target.value)}
+            className="input-field flex-1"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              if (customSkill.trim()) {
+                setSelectedSkills((prev) => [...prev, customSkill.trim()]);
+                setCustomSkill("");
+              }
+            }}
+            className="bg-mist text-ink font-medium px-4 rounded-pill text-sm hover:bg-line transition-colors"
+          >
+            Add
+          </button>
+        </div>
       </div>
 
       <div>
@@ -205,14 +279,9 @@ export default function SubmitProjectForm() {
         </label>
         <input
           name="external_link"
-          placeholder="https://..."
+          placeholder="https://github.com/user/repo"
           className="input-field"
         />
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold mb-2">Your Email</label>
-        <input name="email" type="email" required className="input-field" />
       </div>
 
       <button

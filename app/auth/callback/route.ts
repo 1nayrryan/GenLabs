@@ -14,6 +14,8 @@ export async function GET(request: Request) {
   }
 
   if (code) {
+    let supabaseResponse = NextResponse.next({ request });
+
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
         getAll() {
@@ -25,13 +27,17 @@ export async function GET(request: Request) {
               return { name, value: rest.join("=") };
             }) ?? [];
         },
-        setAll() {},
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          );
+        },
       },
     });
 
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(origin + next);
+      return supabaseResponse;
     }
   }
 

@@ -2,9 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { type Project, rowToProject } from "@/lib/types";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { isAdminUser, isProjectOwner } from "@/lib/auth";
 import GithubStats from "@/components/GithubStats";
-import DeleteProjectButton from "@/components/DeleteProjectButton";
+import ProjectOwnerBar from "@/components/ProjectOwnerBar";
 
 export const dynamic = "force-dynamic";
 
@@ -39,9 +38,6 @@ export default async function ProjectPage({
     date: row.created_at,
     body: row.content,
   }));
-
-  const isOwner = await isProjectOwner(null);
-  const isAdmin = await isAdminUser();
 
   const statusColors: Record<string, string> = {
     seeking: "bg-rose",
@@ -229,17 +225,7 @@ export default async function ProjectPage({
           </a>
         </section>
 
-        {(isOwner || isAdmin) && (
-          <section className="mt-8 pt-8 border-t border-line flex items-center gap-4">
-            <Link
-              href={`/projects/${project.id}/edit`}
-              className="text-sm font-medium text-muted hover:text-ink transition-colors"
-            >
-              Edit
-            </Link>
-            <DeleteProjectButton projectId={project.id} ownerId={ownerId} />
-          </section>
-        )}
+        <ProjectOwnerBar projectId={project.id} ownerId={ownerId} />
       </div>
     </div>
   );

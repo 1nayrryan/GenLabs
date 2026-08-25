@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { type Update } from "@/lib/types";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import UpdateOwnerBar from "@/components/UpdateOwnerBar";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,8 @@ export default async function UpdateDetailPage({
     .single();
 
   if (!data) notFound();
+
+  const authorId = (data.author_id as string) || null;
 
   const update: Update = {
     id: data.id,
@@ -83,6 +86,8 @@ export default async function UpdateDetailPage({
             <path d="M1 6h10M7 2l4 4-4 4" />
           </svg>
         </Link>
+
+        <UpdateOwnerBar articleId={update.id} authorId={authorId} />
       </div>
     </div>
   );
