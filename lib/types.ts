@@ -10,6 +10,7 @@ export type Project = {
   lookingFor: string[];
   links?: { label: string; url: string }[];
   githubRepo?: string;
+  external_link?: string;
   featured?: boolean;
   imageUrl?: string;
 };
@@ -42,6 +43,7 @@ export function rowToProject(row: Record<string, unknown>): Project {
     githubRepo: isGitHub
       ? ext.replace("https://github.com/", "")
       : undefined,
+    external_link: ext || undefined,
     imageUrl: (row.image_url as string) || undefined,
   };
 }

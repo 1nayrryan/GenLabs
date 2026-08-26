@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { CATEGORY_OPTIONS, SKILL_OPTIONS } from "@/lib/constants";
 
@@ -19,6 +19,9 @@ export default function EditProjectPage({
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [customSkill, setCustomSkill] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function load() {
@@ -57,10 +60,22 @@ export default function EditProjectPage({
           (SKILL_OPTIONS as readonly string[]).includes(t)
         )
       );
+      if (data.image_url) {
+        setImagePreview(data.image_url as string);
+      }
       setLoading(false);
     }
     load();
   }, [params.id, router]);
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -68,6 +83,23 @@ export default function EditProjectPage({
     setSaving(true);
 
     const form = new FormData(e.currentTarget);
+
+    let imageUrl = (project.image_url as string) || "";
+
+    if (imageFile) {
+      const fileExt = imageFile.name.split(".").pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const { data, error } = await supabase.storage
+        .from("project-images")
+        .upload(fileName, imageFile);
+
+      if (!error && data) {
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("project-images").getPublicUrl(data.path);
+        imageUrl = publicUrl;
+      }
+    }
 
     await supabase
       .from("projects")
@@ -81,7 +113,12 @@ export default function EditProjectPage({
           .split(",")
           .map((s: string) => s.trim())
           .filter(Boolean),
+        looking_for: ((form.get("looking_for") as string) || "")
+          .split(",")
+          .map((s: string) => s.trim())
+          .filter(Boolean),
         external_link: form.get("external_link") || "",
+        image_url: imageUrl || null,
       })
       .eq("id", params.id);
 
@@ -142,6 +179,19 @@ export default function EditProjectPage({
           </div>
           <div>
             <label className="block text-sm font-semibold mb-2">
+              Looking For
+            </label>
+            <input
+              name="looking_for"
+              placeholder="e.g. Backend developer, UI designer"
+              className="input-field"
+              defaultValue={
+                ((project?.looking_for as string[]) || []).join(", ") || ""
+              }
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-2">
               Description
             </label>
             <textarea
@@ -149,6 +199,50 @@ export default function EditProjectPage({
               rows={5}
               className="input-field resize-none"
               defaultValue={(project?.description as string) || ""}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-2">
+              Project Image
+            </label>
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-line rounded-card p-6 text-center cursor-pointer hover:border-ink transition-colors"
+            >
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="max-h-40 mx-auto rounded-lg object-cover"
+                />
+              ) : (
+                <div>
+                  <svg
+                    className="mx-auto mb-2 text-muted"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                  >
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <path d="M21 15l-5-5L5 21" />
+                  </svg>
+                  <p className="text-sm text-muted">
+                    Click to upload a screenshot
+                  </p>
+                  <p className="text-xs text-muted/60 mt-1">PNG, JPG up to 5MB</p>
+                </div>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
             />
           </div>
           <div>
@@ -238,7 +332,7 @@ export default function EditProjectPage({
             </label>
             <input
               name="external_link"
-              placeholder="https://..."
+              placeholder="https://github.com/user/repo or https://yoursite.com"
               className="input-field"
               defaultValue={(project?.external_link as string) || ""}
             />
