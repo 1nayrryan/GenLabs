@@ -85,6 +85,16 @@ export default async function ProjectPage({
           <p className="text-lg text-muted leading-relaxed">{project.summary}</p>
         </div>
 
+        {project.imageUrl && (
+          <div className="mb-8 rounded-card-lg overflow-hidden border border-line">
+            <img
+              src={project.imageUrl}
+              alt={project.title}
+              className="w-full object-cover max-h-[480px]"
+            />
+          </div>
+        )}
+
         <div className="flex flex-wrap gap-1.5 mb-8">
           <span className="tag-solid">{project.category}</span>
           {project.skills.map((skill) => (
